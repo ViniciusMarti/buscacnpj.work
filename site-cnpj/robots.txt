@@ -1,4 +1,16 @@
 User-agent: *
 Allow: /
+Disallow: /404.html
 
+# Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 2
+
+Sitemap: https://buscacnpj.work/sitemap-index.xml
 Sitemap: https://buscacnpj.work/sitemap.xml
