@@ -1237,3 +1237,8 @@
 19:18:28 INFO ✅  CONCLUÍDO em 0.5 min — 50 páginas geradas
 19:18:28 INFO Próximo: git add . && git commit -m 'Update' && git push
 19:18:28 INFO =======================================================
+20:01:19 INFO ============================================================
+20:01:19 INFO   BuscaCNPJ — Gerador v4b (novo design)
+20:01:19 INFO   Total: 0  |  Pendentes: 0  |  Workers: 8
+20:01:19 INFO ============================================================
+20:01:19 INFO ✅  Tudo já gerado!
