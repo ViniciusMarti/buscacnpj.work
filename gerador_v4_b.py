@@ -481,16 +481,19 @@ def main():
             if res:
                 cnpj, nome, mun, uf = res
                 count += 1
-                ppm = count / max((time.time()-t0)/60, 0.01)
-                log.info("[%d/%d] ✅  %s — %s — %s/%s  (%.0f pág/min)",
-                         count, len(pendentes), cnpj, nome[:35], mun, uf, ppm)
-                if count % SAVE_EVERY == 0:
+                if count % 1000 == 0 or count == len(pendentes):
+                    ppm = count / max((time.time()-t0)/60, 0.01)
+                    log.info("[%d/%d] ✅  %s — %s — %s/%s  (%.0f pág/min)",
+                             count, len(pendentes), cnpj, nome[:35], mun, uf, ppm)
+                
+                if count % 5000 == 0:
                     with lock:
                         if (cnpj, nome) not in index_links and len(index_links) < 500:
                             index_links.append((cnpj, nome))
                         gerar_index(index_links, len(processed))
                         gerar_sitemap(processed)
-                    log.info("    💾 index + sitemap atualizados")
+                    log.info("    💾 [Checkpoint %d] index + sitemap atualizados", count)
+
 
     gerar_index(index_links, len(processed))
     gerar_sitemap(processed)
