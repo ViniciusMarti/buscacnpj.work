@@ -337,4 +337,6 @@ footer p { color: var(--text-muted); font-size: 0.9rem; }
   .sec-title { text-align: center; justify-content: center; margin: 48px 0 20px; }
   
   .partner-section { padding: 60px 20px; }
+  .page-wrap { padding: 20px 20px 80px; }
+  .bc { margin-bottom: 20px; }
 }

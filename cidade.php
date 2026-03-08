@@ -126,7 +126,13 @@ function format_money($val) {
         .ranking-table .name:hover { color: var(--primary); }
         .ranking-table .cnpj { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; }
         
-        @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .ranking-table { min-width: 600px; } }
+        @media (max-width: 768px) { 
+            .stats-grid { grid-template-columns: 1fr; } 
+            .ranking-table { min-width: 600px; } 
+            .page-header { padding: 10px 0 20px !important; }
+            h1 { font-size: 2.22rem !important; }
+        }
+        .page-header { padding: 40px 0 20px; text-align: left; border:none; background:none; position: relative; z-index: 1; }
     </style>
     <script type="application/ld+json">
     {
@@ -154,7 +160,7 @@ function format_money($val) {
         <?php echo titleCase($real_city_name); ?>
     </div>
     
-    <header style="padding: 40px 0 20px; text-align: left; border:none; background:none; position: relative; z-index: 1;">
+    <header class="page-header">
         <h1 style="font-size: clamp(2rem, 8vw, 3rem); margin-bottom:10px; line-height: 1.1;">Maiores Empresas em <?php echo titleCase($real_city_name); ?>, <?php echo $uf; ?></h1>
         <p style="font-weight:700; color:var(--primary); font-size:1.1rem; margin-bottom:12px;">Ranking de Capital Social • As 100 maiores da cidade</p>
         <p style="color:var(--text-muted); max-width:800px;">Consulte o panorama empresarial de <?php echo titleCase($real_city_name); ?>. Dados oficiais baseados no capital social declarado na Receita Federal.</p>

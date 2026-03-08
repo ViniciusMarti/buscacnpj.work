@@ -175,7 +175,9 @@ function format_money($val) {
             h1 { font-size: 2.2rem !important; }
             .ranking-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
             .ranking-table { min-width: 600px; }
+            .page-header { padding: 10px 0 20px !important; }
         }
+        .page-header { padding: 40px 0 20px; text-align: left; border:none; background:none; position: relative; z-index: 1; }
     </style>
     <script type="application/ld+json">
     {
@@ -198,7 +200,7 @@ function format_money($val) {
 <div class="page-wrap fade-up">
     <div class="bc"><a href="/">Início</a> > <a href="/rankings/">Rankings</a> > <?php echo $state_name; ?></div>
     
-    <header style="padding: 40px 0 20px; text-align: left; border:none; background:none; position: relative; z-index: 1;">
+    <header class="page-header">
         <h1 style="font-size: clamp(2rem, 8vw, 3rem); margin-bottom:10px; line-height: 1.1;">Maiores Empresas em <?php echo $state_name; ?></h1>
         <p style="font-weight:700; color:var(--primary); font-size:1.1rem; margin-bottom:12px;">Ranking por Capital Social • Top 100 do estado</p>
         <p style="color:var(--text-muted); max-width:800px;">Ranking estadual com empresas matriz (CNPJ raiz único). Veja os indicadores em <?php echo $state_name; ?> e a lista das 100 maiores empresas.</p>

@@ -78,9 +78,9 @@ function format_money($val) {
             .br-overview { padding: 20px; border-radius: 16px; overflow-x: auto; }
             .ranking-table-mini { min-width: 500px; }
             .page-header h1 { font-size: 2.22rem !important; }
+            .page-header { padding: 20px 0 20px !important; }
         }
         .ranking-table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .page-header { position: relative; z-index: 1; }
     </style>
 </head>
 <body class="rankings-hub">
