@@ -2,7 +2,7 @@ import sqlite3
 import os
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, "database", "dados.db")
+DB_PATH = os.path.join(os.path.dirname(BASE_DIR), "database_cnpj.sqlite")
 
 def add_indexes():
     if not os.path.exists(DB_PATH):

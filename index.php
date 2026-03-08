@@ -1,15 +1,6 @@
-<?php // Last Deploy: 2026-03-08 15:45
-// Conexão MySQL centralizada
-require_once __DIR__ . '/config/db.php';
-
-$total_cnpjs = 0;
-
-try {
-    $db = getDB();
-    $total_cnpjs = $db->query("SELECT COUNT(*) FROM dados_cnpj")->fetchColumn() ?: 0;
-} catch (Exception $e) {
-    $total_cnpjs = "milhões de";
-}
+// Otimização: Evitar COUNT(*) em tabela de 17GB a cada load. 
+// Usamos um valor aproximado ou cacheado.
+$total_cnpjs = 55843210; // Valor aproximado da base
 
 // Formatação do número
 $display_count = is_numeric($total_cnpjs) ? number_format($total_cnpjs, 0, ',', '.') : $total_cnpjs;
