@@ -1,6 +1,7 @@
 <?php
-// Configurações
-$db_file = 'database/dados.db';
+// Conexão MySQL centralizada
+require_once __DIR__ . '/config/db.php';
+
 $slug = $_GET['slug'] ?? '';
 
 // Mapeamento de Slugs para UF
@@ -38,8 +39,7 @@ $cnae_filter = $_GET['cnae'] ?? '';
 $city_filter = $_GET['cidade'] ?? '';
 
 try {
-    $db = new PDO("sqlite:$db_file");
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $db = getDB();
 
     // 1. Stats Gerais
     $total_companies = $db->prepare("SELECT COUNT(*) FROM empresas WHERE uf = :uf");
@@ -52,7 +52,7 @@ try {
 
     // 2. Panorama
     // Idade Média (aproximada pela data de abertura)
-    $stmt_age = $db->prepare("SELECT AVG(strftime('%Y', 'now') - substr(data_abertura, 1, 4)) FROM empresas WHERE uf = :uf AND data_abertura != ''");
+    $stmt_age = $db->prepare("SELECT AVG(YEAR(CURDATE()) - YEAR(STR_TO_DATE(LEFT(data_abertura,10), '%Y-%m-%d'))) FROM empresas WHERE uf = :uf AND data_abertura != ''");
     $stmt_age->execute([':uf' => $uf]);
     $avg_age = round($stmt_age->fetchColumn() ?: 0);
 

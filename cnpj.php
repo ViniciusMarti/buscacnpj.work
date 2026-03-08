@@ -1,6 +1,7 @@
 <?php
-// Configurações e Conexão
-$db_file = 'database/dados.db';
+// Conexão MySQL centralizada
+require_once __DIR__ . '/config/db.php';
+
 $cnpj = preg_replace('/[^0-9]/', '', $_GET['cnpj'] ?? '');
 
 if (strlen($cnpj) !== 14) {
@@ -9,16 +10,15 @@ if (strlen($cnpj) !== 14) {
 }
 
 try {
-    $db = new PDO("sqlite:$db_file");
-    $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-    
+    $db = getDB();
+
     $stmt = $db->prepare("SELECT * FROM empresas WHERE cnpj = :cnpj");
     $stmt->execute([':cnpj' => $cnpj]);
     $data = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if (!$data) {
         header("HTTP/1.0 404 Not Found");
-        include('404.php'); // Opcional, se o usuário tiver uma 404 personalizada
+        include('404.php');
         die();
     }
 } catch (PDOException $e) {
