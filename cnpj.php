@@ -81,6 +81,14 @@ if (strlen($meta_description) > 155) {
 ?>
 <!DOCTYPE html><html lang="pt-BR">
 <head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WWPBCTLJ');</script>
+<!-- End Google Tag Manager -->
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title><?php echo $meta_title; ?></title>
     <meta name="description" content="<?php echo $meta_description; ?>">
@@ -91,6 +99,11 @@ if (strlen($meta_description) > 155) {
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "<?php echo $nome; ?>", "taxID": "<?php echo $cnpj_f; ?>"}</script>
 </head>
 <body>
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WWPBCTLJ"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
 <header><div class="header-inner"><a class="logo" href="/" aria-label="BuscaCNPJ Grátis - Ir para a página inicial">Busca<span>CNPJ</span> Grátis</a><nav><a href="/">Início</a><a href="/rankings/">Rankings</a><a href="/sobre/">Sobre</a></nav></div></header>
 <div class="page-wrap fade-up">
     <nav aria-label="Breadcrumb" class="bc"><a href="/">Início</a> / <a href="/cnpj/">CNPJ</a> / <?php echo $cnpj_f; ?></nav>
@@ -222,4 +235,8 @@ function copyText(txt, btn) {
     }).catch(() => {});
 }
 </script>
+
+<!-- GTM Custom Events Tracker -->
+<script src="/assets/gtm-events.js" defer></script>
+
 </body></html>

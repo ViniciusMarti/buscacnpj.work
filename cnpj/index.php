@@ -1,5 +1,13 @@
 <!DOCTYPE html><html lang="pt-BR">
 <head>
+<!-- Google Tag Manager -->
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-WWPBCTLJ');</script>
+<!-- End Google Tag Manager -->
+
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>CNPJ — BuscaCNPJ Gratis — Consulta Gratuita de Empresas</title>
     <meta name="description" content="Acesse a base de dados oficial e gratuita do CNPJ. Consulte a situação cadastral, contatos e endereço de qualquer empresa brasileira.">
@@ -9,6 +17,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
 <body class="home-page">
+<!-- Google Tag Manager (noscript) -->
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-WWPBCTLJ"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+<!-- End Google Tag Manager (noscript) -->
+
 <header>
     <div class="header-inner">
         <a class="logo" href="/">Busca<span>CNPJ</span> Grátis</a>
@@ -53,4 +66,8 @@ function buscar(){
     else if(q.length > 0) alert('Erro: É necessário digitar os 14 dígitos do CNPJ para prosseguir.');
 }
 </script>
+
+<!-- GTM Custom Events Tracker -->
+<script src="/assets/gtm-events.js" defer></script>
+
 </body></html>
