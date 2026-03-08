@@ -1,5 +1,11 @@
 RewriteEngine On
 
+# --- REDIRECIONAMENTO 301: Domínio antigo → Novo ---
+RewriteCond %{HTTP_HOST} ^(www\.)?buscacnpj\.work$ [NC]
+RewriteRule ^(.*)$ https://buscacnpjgratis.com.br/$1 [R=301,L]
+
+
+
 # --- SEGURANÇA MÁXIMA PARA DADOS ---
 # Bloqueio de acesso direto a pastas sensíveis
 RewriteRule ^database/ - [F,L]

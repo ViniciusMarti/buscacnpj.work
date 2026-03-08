@@ -1,7 +1,7 @@
 import sqlite3
 import os
 
-DB_PATH = r"c:\Users\marti\Documents\Repositório\buscacnpjwork\database\dados.db"
+DB_PATH = r"c:\Users\marti\Documents\repositorio\buscacnpjgratis\database\dados.db"
 
 def check():
     conn = sqlite3.connect(DB_PATH)
