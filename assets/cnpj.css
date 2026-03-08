@@ -322,6 +322,18 @@ footer p { color: var(--text-muted); font-size: 0.9rem; }
   .search-container input { padding: 14px; text-align: center; font-size: 16px; }
   .search-container button { padding: 16px; width: 100%; border-radius: 12px; }
 
-  .company-hero { padding: 32px 24px; }
+  .company-hero { padding: 32px 20px; text-align: center; }
+  .copy-group { justify-content: center; gap: 10px; }
+  .btn-copy { flex: 1 1 100%; justify-content: center; padding: 14px; font-size: 0.95rem; }
+  
+  .badge { margin: 0 auto 20px; }
+  .bc { flex-wrap: wrap; justify-content: center; line-height: 1.6; }
+  
+  .info-grid { grid-template-columns: 1fr; gap: 16px; }
+  .info-box { grid-column: 1 / -1 !important; padding: 20px; }
+  .info-box p { word-break: break-word; }
+  
+  .sec-title { text-align: center; justify-content: center; margin: 48px 0 20px; }
+  
   .partner-section { padding: 60px 20px; }
 }
