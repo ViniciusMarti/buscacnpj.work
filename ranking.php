@@ -90,7 +90,7 @@ try {
         $params[':city'] = $city_filter;
     }
 
-    $query .= " ORDER BY capital_social DESC LIMIT 1000";
+    $query .= " ORDER BY capital_social DESC LIMIT 100";
     $stmt_ranking = $db->prepare($query);
     $stmt_ranking->execute($params);
     $ranking = $stmt_ranking->fetchAll(PDO::FETCH_ASSOC);
@@ -119,8 +119,8 @@ function format_money($val) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Maiores Empresas em <?php echo $state_name; ?> - Ranking Top 1000 | GestãoMax</title>
-    <meta name="description" content="Ranking das 1000 maiores empresas de <?php echo $state_name; ?> por capital social. Panorama empresarial, setores dominantes e filtros dinâmicos.">
+    <title>Maiores Empresas em <?php echo $state_name; ?> - Ranking Top 100 | GestãoMax</title>
+    <meta name="description" content="Ranking das 100 maiores empresas de <?php echo $state_name; ?> por capital social. Panorama empresarial, setores dominantes e filtros dinâmicos.">
     <?php $current_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>
     <link rel="canonical" href="<?php echo $current_url; ?>">
     <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
@@ -171,8 +171,8 @@ function format_money($val) {
     
     <header style="padding: 40px 0 20px; text-align: left; border:none; background:none;">
         <h1 style="font-size: 3rem; margin-bottom:10px;">Maiores Empresas em <?php echo $state_name; ?></h1>
-        <p style="font-weight:700; color:var(--primary); font-size:1.1rem; margin-bottom:12px;">Ranking por Capital Social • Top 1000 do estado</p>
-        <p style="color:var(--text-muted); max-width:800px;">Ranking estadual com empresas matriz (CNPJ raiz único). Veja os indicadores em <?php echo $state_name; ?> e a lista das 1000 maiores empresas.</p>
+        <p style="font-weight:700; color:var(--primary); font-size:1.1rem; margin-bottom:12px;">Ranking por Capital Social • Top 100 do estado</p>
+        <p style="color:var(--text-muted); max-width:800px;">Ranking estadual com empresas matriz (CNPJ raiz único). Veja os indicadores em <?php echo $state_name; ?> e a lista das 100 maiores empresas.</p>
     </header>
 
     <div class="stats-grid">
