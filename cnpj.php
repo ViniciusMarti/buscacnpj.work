@@ -131,6 +131,28 @@ if (strlen($meta_description) > 155) {
         <div class="info-box"><label>Capital Social</label><p><?php echo format_money($data['capital_social']); ?></p></div>
     </div>
 
+    <!-- CAMBLY AD -->
+    <div class="promo-banner fade-up">
+        <div class="promo-content">
+            <div class="promo-brand">
+                <img src="/assets/cambly-logo.png" alt="Cambly" width="172" height="49" style="width: auto;">
+            </div>
+            <h3>Invista em você: Inglês fluente para decolar a carreira</h3>
+            <p>O melhor investimento é no seu conhecimento. O plano <strong>Pequenos Grupos</strong> te conecta com tutores nativos para você ganhar o mercado global.</p>
+            <div class="promo-price">
+                <span class="amount">R$&nbsp;52</span>
+                <span class="term">/mês</span>
+                <span class="badge">Opção mais vendida</span>
+            </div>
+            <a href="https://www.cambly.com/invite/VINICIUSCODES?st=030726&amp;sc=4" target="_blank" rel="sponsored" class="promo-cta">
+                Começar agora 
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            </a>
+        </div>
+        <div class="promo-image"></div>
+    </div>
+    <!-- /CAMBLY AD -->
+
     <h2 class="sec-title">Localização & Contato</h2>
     <div class="info-grid">
         <div class="info-box" style="grid-column: span 2;"><label>Endereço</label><p><?php echo $data['logradouro'] . ', ' . $data['numero'] . ($data['complemento'] ? ' - ' . $data['complemento'] : ''); ?></p></div>

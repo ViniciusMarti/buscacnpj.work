@@ -267,7 +267,32 @@ nav a:hover { color: var(--primary); }
     .cambly-title { font-size: 1.5rem !important; }
     .cambly-text { font-size: 0.95rem !important; }
     .cambly-logo { margin: 0 auto 15px; }
-    .cambly-price-row { justify-content: center; }
+}
+
+/* ── Novo Banner Cambly da ViniciusCodes ── */
+.promo-banner { background: linear-gradient(135deg, var(--surface), var(--bg)); border: 1px solid var(--border); border-radius: 20px; margin: 40px 0 64px; display: grid; grid-template-columns: 1.2fr 0.8fr; box-shadow: var(--shadow-sm); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); overflow: hidden; font-family: 'Inter', sans-serif; }
+.promo-banner:hover { box-shadow: var(--shadow-md); border-color: var(--border-focus); transform: translateY(-2px); }
+.promo-content { padding: 40px; display: flex; flex-direction: column; justify-content: center; }
+.promo-image { background-image: url('https://images.unsplash.com/photo-1516321497487-e288fb19713f?auto=format&fit=crop&q=80&w=800'); background-size: cover; background-position: center; min-height: 300px; }
+.promo-brand { display: flex; align-items: center; margin-bottom: 24px; }
+.promo-brand img { height: 28px; width: auto; }
+@media (prefers-color-scheme: dark) { .promo-brand img { filter: brightness(0) invert(1); } }
+.promo-banner h3 { font-size: 1.8rem; font-weight: 800; margin-bottom: 16px; color: var(--text); line-height: 1.2; letter-spacing: -0.02em; }
+.promo-banner p { color: var(--text-muted); margin-bottom: 24px; font-size: 1.05rem; line-height: 1.6; }
+.promo-price { display: flex; align-items: baseline; gap: 8px; margin-bottom: 32px; }
+.promo-price .amount { font-size: 2.2rem; font-weight: 800; color: var(--text); letter-spacing: -0.02em; }
+.promo-price .term { font-size: 0.95rem; color: var(--text-muted); font-weight: 500; }
+.promo-price .badge { background: #fee2e2; color: #b91c1c; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 100px; margin-left: 8px; }
+.promo-cta { background: #fca311; color: #111; text-decoration: none; padding: 16px 32px; border-radius: 100px; font-weight: 700; transition: all 0.3s; font-size: 1.05rem; display: inline-flex; align-items: center; gap: 10px; width: fit-content; border: none; cursor: pointer; }
+.promo-cta:hover { transform: scale(1.02); background: #f59e0b; }
+@media (prefers-color-scheme: dark) { .promo-price .badge { background: rgba(239, 68, 68, 0.2); color: #fca5a5; } }
+@media (max-width: 768px) { 
+    .promo-banner { grid-template-columns: 1fr; margin: 32px 0; border-radius: 16px; }
+    .promo-image { order: -1; min-height: 180px; }
+    .promo-content { padding: 32px 24px; }
+    .promo-banner h3 { font-size: 1.5rem; margin-bottom: 12px; }
+    .promo-price { margin-bottom: 24px; flex-wrap: wrap; }
+    .promo-cta { width: 100%; justify-content: center; }
 }
 
 /* ── Footer ── */

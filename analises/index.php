@@ -85,7 +85,7 @@ $canonical = "https://buscacnpjgratis.com.br/analises/";
 </div>
 
 <footer style="margin-top: 80px; text-align: center; padding: 40px; border-top: 1px solid var(--border); color: var(--text-muted);">
-    <p>© <?php echo date('Y'); ?> GestãoMax — Inteligência de Mercado B2B.</p>
+    <p>© <?php echo date('Y'); ?> BuscaCNPJ Gratis — Baseada 100% em dados públicos abertos.</p>
 </footer>
 
 </body>

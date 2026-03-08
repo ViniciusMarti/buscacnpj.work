@@ -225,7 +225,7 @@ function format_money($val) {
 
 <footer>
     <nav><a href="/rankings/">Rankings</a><a href="/sobre/">Sobre</a><a href="/privacidade/">Privacidade</a><a href="/contato/">Contato</a></nav>
-    <p>© <?php echo date('Y'); ?> GestãoMax — Inteligência de Mercado e Dados B2B.</p>
+    <p>© <?php echo date('Y'); ?> BuscaCNPJ Gratis — Baseada 100% em dados públicos abertos.</p>
 </footer>
 
 </body>

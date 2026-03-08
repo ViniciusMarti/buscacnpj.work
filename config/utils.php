@@ -35,3 +35,20 @@ function format_money_friendly($val) {
     }
     return 'R$ ' . number_format($val, 2, ',', '.');
 }
+
+/**
+ * Retorna a preposição correta para o estado.
+ */
+function get_estado_prep($uf) {
+    if (!$uf) return 'de';
+    $preps = [
+        'AC'=>'do', 'AL'=>'de', 'AP'=>'do', 'AM'=>'do', 'BA'=>'da',
+        'CE'=>'do', 'DF'=>'do', 'ES'=>'do', 'GO'=>'de', 'MA'=>'do',
+        'MT'=>'de', 'MS'=>'de', 'MG'=>'de', 'PA'=>'do', 'PB'=>'da',
+        'PR'=>'do', 'PE'=>'de', 'PI'=>'do', 'RJ'=>'do', 'RN'=>'do',
+        'RS'=>'do', 'RO'=>'de', 'RR'=>'de', 'SC'=>'de', 'SP'=>'de',
+        'SE'=>'de', 'TO'=>'do'
+    ];
+    return $preps[strtoupper($uf)] ?? 'de';
+}
+

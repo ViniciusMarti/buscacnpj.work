@@ -186,7 +186,7 @@ try {
 </div>
 
 <footer style="text-align: center; padding: 40px; border-top: 1px solid var(--border); color: var(--text-muted);">
-    <p>© <?php echo date('Y'); ?> GestãoMax — Baseada 100% em dados públicos abertos.</p>
+    <p>© <?php echo date('Y'); ?> BuscaCNPJ Gratis — Baseada 100% em dados públicos abertos.</p>
 </footer>
 
 </body>

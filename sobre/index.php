@@ -61,7 +61,7 @@
       "description": "Ferramenta gratuita de consulta de CNPJ do Brasil.",
       "publisher": {
         "@type": "Organization",
-        "name": "GestãoMax",
+        "name": "BuscaCNPJ Gratis",
         "url": "https://buscacnpjgratis.com.br"
       }
     }
@@ -126,7 +126,7 @@
         <a href="/contato/">Contato</a>
     </nav>
     <p>As informações têm caráter público e informativo. Atualizado em 2026.</p>
-    <p style="margin-top: 5px;">© <?php echo date('Y'); ?> <a href="https://buscacnpjgratis.com.br" style="color: inherit; text-decoration: none; font-weight: 500;">GestãoMax</a> — Inteligência de Mercado B2B.</p>
+    <p style="margin-top: 5px;">© <?php echo date('Y'); ?> <a href="https://buscacnpjgratis.com.br" style="color: inherit; text-decoration: none; font-weight: 500;">BuscaCNPJ Gratis</a> — Baseada 100% em dados públicos abertos.</p>
 </footer>
 
 </body>
