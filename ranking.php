@@ -125,8 +125,9 @@ function format_money($val) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Maiores Empresas em <?php echo $state_name; ?> - Ranking Top 100 | GestãoMax</title>
-    <meta name="description" content="Ranking das 100 maiores empresas de <?php echo $state_name; ?> por capital social. Panorama empresarial, setores dominantes e filtros dinâmicos.">
+    <?php $prep = get_estado_prep($uf); $ano = date('Y'); ?>
+    <title>As 100 Maiores Empresas <?php echo $prep . ' ' . $state_name; ?> em <?php echo $ano; ?> – Ranking Atualizado</title>
+    <meta name="description" content="Descubra quais são as 100 maiores empresas <?php echo $prep . ' ' . $state_name; ?>. Lista atualizada, setores dominantes e dados empresariais detalhados.">
     <?php $current_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>
     <link rel="canonical" href="<?php echo $current_url; ?>">
     <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
@@ -176,6 +177,14 @@ function format_money($val) {
             .ranking-table { min-width: 600px; }
         }
     </style>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "100 Maiores Empresas <?php echo $prep . ' ' . $state_name; ?>",
+      "numberOfItems": 100
+    }
+    </script>
 </head>
 <body class="ranking-page">
 

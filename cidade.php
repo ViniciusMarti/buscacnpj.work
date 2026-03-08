@@ -95,8 +95,9 @@ function format_money($val) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Maiores Empresas em <?php echo titleCase($real_city_name); ?> (<?php echo $uf; ?>) - Ranking Top 100 | GestãoMax</title>
-    <meta name="description" content="Ranking das 100 maiores empresas de <?php echo titleCase($real_city_name); ?>, <?php echo $uf; ?> por capital social. Estatísticas e inteligência de mercado.">
+    <?php $ano = date('Y'); $nome_cidade = titleCase($real_city_name); ?>
+    <title>As 100 Maiores Empresas de <?php echo $nome_cidade; ?> (<?php echo $uf; ?>) em <?php echo $ano; ?> – Ranking Atualizado</title>
+    <meta name="description" content="Descubra quais são as 100 maiores empresas de <?php echo $nome_cidade; ?> (<?php echo $uf; ?>). Lista atualizada, setores dominantes e dados empresariais detalhados.">
     <?php $current_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>
     <link rel="canonical" href="<?php echo $current_url; ?>">
     <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
@@ -127,6 +128,14 @@ function format_money($val) {
         
         @media (max-width: 768px) { .stats-grid { grid-template-columns: 1fr; } .ranking-table { min-width: 600px; } }
     </style>
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "100 Maiores Empresas de <?php echo $nome_cidade; ?> (<?php echo $uf; ?>)",
+      "numberOfItems": 100
+    }
+    </script>
 </head>
 <body class="ranking-page">
 
