@@ -1,6 +1,7 @@
 <?php
 // Configuração centralizada do banco de dados SQLite
-define('DB_PATH', __DIR__ . '/../database/database_cnpj.sqlite');
+// O banco de dados fica na raiz da conta, fora do public_html para segurança e deploy Git
+define('DB_PATH', dirname(__DIR__, 2) . '/database_cnpj.sqlite');
 
 function getDB(): PDO {
     static $pdo = null;
@@ -9,7 +10,8 @@ function getDB(): PDO {
             // Verificar se o arquivo existe (opcional, mas bom para debug)
             if (!file_exists(DB_PATH)) {
                 // Caso não encontre no caminho padrão, tenta caminho relativo simples para o servidor
-                $path = $_SERVER['DOCUMENT_ROOT'] . '/database/database_cnpj.sqlite';
+                // Tenta localizar na pasta raiz do domínio (comum na Hostinger)
+                $path = dirname($_SERVER['DOCUMENT_ROOT']) . '/database_cnpj.sqlite';
                 if (!file_exists($path)) {
                     // Fallback para o caminho definido
                     $path = DB_PATH;
