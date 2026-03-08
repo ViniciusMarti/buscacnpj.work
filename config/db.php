@@ -1,6 +1,6 @@
 <?php
 // Configuração centralizada do banco de dados SQLite
-define('DB_PATH', __DIR__ . '/../database/csv_final/database_cnpj.sqlite');
+define('DB_PATH', __DIR__ . '/../database/database_cnpj.sqlite');
 
 function getDB(): PDO {
     static $pdo = null;
@@ -9,7 +9,7 @@ function getDB(): PDO {
             // Verificar se o arquivo existe (opcional, mas bom para debug)
             if (!file_exists(DB_PATH)) {
                 // Caso não encontre no caminho padrão, tenta caminho relativo simples para o servidor
-                $path = $_SERVER['DOCUMENT_ROOT'] . '/database/csv_final/database_cnpj.sqlite';
+                $path = $_SERVER['DOCUMENT_ROOT'] . '/database/database_cnpj.sqlite';
                 if (!file_exists($path)) {
                     // Fallback para o caminho definido
                     $path = DB_PATH;

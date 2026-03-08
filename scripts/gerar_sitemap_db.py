@@ -3,7 +3,7 @@ import os
 
 # Caminho para o banco de dados relativo a este script
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DB_PATH = os.path.join(BASE_DIR, "database", "csv_final", "database_cnpj.sqlite")
+DB_PATH = os.path.join(BASE_DIR, "database", "database_cnpj.sqlite")
 OUTPUT_DIR = BASE_DIR
 
 def gerar_sitemap():
