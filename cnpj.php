@@ -84,13 +84,14 @@ if (strlen($meta_description) > 155) {
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title><?php echo $meta_title; ?></title>
     <meta name="description" content="<?php echo $meta_description; ?>">
-    <link rel="canonical" href="https://buscacnpjgratis.com.br/cnpj/<?php echo $cnpj; ?>/">
+    <?php $current_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>
+    <link rel="canonical" href="<?php echo $current_url; ?>">
     <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "<?php echo $nome; ?>", "taxID": "<?php echo $cnpj_f; ?>"}</script>
 </head>
 <body>
-<header><div class="header-inner"><a class="logo" href="/">Busca<span>CNPJ</span> Grátis</a><nav><a href="/">Início</a><a href="/sobre/">Sobre</a></nav></div></header>
+<header><div class="header-inner"><a class="logo" href="/">Busca<span>CNPJ</span> Grátis</a><nav><a href="/">Início</a><a href="/rankings/">Rankings</a><a href="/sobre/">Sobre</a></nav></div></header>
 <div class="page-wrap fade-up">
     <div class="bc"><a href="/">Início</a> / <a href="/cnpj/">CNPJ</a> / <?php echo $cnpj_f; ?></div>
     <div class="company-hero">
@@ -189,7 +190,7 @@ if (strlen($meta_description) > 155) {
     </div>
 
 </div>
-<footer><nav><a href="/">Início</a><a href="/sobre/">Sobre</a><a href="/privacidade/">Privacidade</a><a href="/contato/">Contato</a></nav><p>© 2026 BuscaCNPJ Gratis — Todos os direitos reservados.</p></footer>
+<footer><nav><a href="/">Início</a><a href="/rankings/">Rankings</a><a href="/sobre/">Sobre</a><a href="/privacidade/">Privacidade</a><a href="/contato/">Contato</a></nav><p>© 2026 BuscaCNPJ Gratis — Todos os direitos reservados.</p></footer>
 <script>
 function copyText(txt, btn) {
     navigator.clipboard.writeText(txt).then(() => {

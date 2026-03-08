@@ -1,0 +1,63 @@
+<?php
+// Configurações para grandes volumes de dados
+set_time_limit(0); 
+ini_set('memory_limit', '1G');
+
+$host = 'localhost';
+$db   = 'u686607078_buscacnpj';
+$user = 'u686607078_buscacnpj';
+$pass = '*7VjTmUb';
+
+$conn = new mysqli($host, $user, $pass, $db);
+if ($conn->connect_error) die("Erro de conexão: " . $conn->connect_error);
+
+// Busca todos os arquivos compactados .csv.gz
+$arquivos = glob("*.csv.gz");
+
+if (empty($arquivos)) {
+    die("Nenhum arquivo .csv.gz encontrado na pasta.\n");
+}
+
+foreach ($arquivos as $arquivo) {
+    echo "--- Processando: $arquivo ---\n";
+    
+    if (($handle = gzopen($arquivo, "r")) !== FALSE) {
+        // Pula o cabeçalho (a primeira linha com os nomes das colunas)
+        fgetcsv($handle); 
+        
+        $linhas = [];
+        $contadorTotal = 0;
+
+        while (($data = fgetcsv($handle, 0, ",")) !== FALSE) {
+            // Verifica se a linha tem as 20 colunas esperadas
+            if (count($data) == 20) {
+                $values = array_map(function($val) use ($conn) {
+                    return "'" . $conn->real_escape_string($val) . "'";
+                }, $data);
+                
+                $linhas[] = "(" . implode(",", $values) . ")";
+                $contadorTotal++;
+
+                // Insere em lotes de 2000 para manter a velocidade e estabilidade
+                if (count($linhas) >= 2000) {
+                    $sql = "INSERT INTO dados_cnpj (cnpj, razao_social, nome_fantasia, situacao, data_abertura, porte, capital_social, logradouro, numero, complemento, bairro, cep, municipio, uf, email, telefone, cnae_principal_codigo, cnae_principal_descricao, cnaes_secundarios, quadro_societario) VALUES " . implode(",", $linhas);
+                    $conn->query($sql);
+                    $linhas = [];
+                }
+            }
+        }
+        
+        // Insere as linhas restantes do arquivo
+        if (!empty($linhas)) {
+            $sql = "INSERT INTO dados_cnpj (cnpj, razao_social, nome_fantasia, situacao, data_abertura, porte, capital_social, logradouro, numero, complemento, bairro, cep, municipio, uf, email, telefone, cnae_principal_codigo, cnae_principal_descricao, cnaes_secundarios, quadro_societario) VALUES " . implode(",", $linhas);
+            $conn->query($sql);
+        }
+        
+        gzclose($handle);
+        echo "Sucesso: $contadorTotal linhas inseridas. Deletando arquivo local para liberar espaço...\n";
+        
+        // Remove o arquivo .gz após a importação completa para poupar seu disco
+        unlink($arquivo); 
+    }
+}
+echo "Todos os arquivos do lote foram processados!\n";

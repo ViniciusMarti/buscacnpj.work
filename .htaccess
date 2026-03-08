@@ -1,10 +1,20 @@
 RewriteEngine On
 
+# --- FORÇAR HTTPS & CORS ---
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Autorizar Domínios (CORS)
+<IfModule mod_headers.c>
+    SetEnvIf Origin "https://(www\.)?buscacnpjgratis\.com\.br" allowed_origin=$0
+    SetEnvIf Origin "https://mediumspringgreen-newt-739820\.hostingersite\.com" allowed_origin=$0
+    Header set Access-Control-Allow-Origin %{allowed_origin}e env=allowed_origin
+    Header append Vary Origin
+</IfModule>
+
 # --- REDIRECIONAMENTO 301: Domínio antigo → Novo ---
 RewriteCond %{HTTP_HOST} ^(www\.)?buscacnpj\.work$ [NC]
 RewriteRule ^(.*)$ https://buscacnpjgratis.com.br/$1 [R=301,L]
-
-
 
 # --- SEGURANÇA MÁXIMA PARA DADOS ---
 # Bloqueio de acesso direto a pastas sensíveis
@@ -21,6 +31,7 @@ RewriteRule ^config/ - [F,L]
 RewriteRule ^cnpj/([0-9]{14})/?$ cnpj.php?cnpj=$1 [L,QSA]
 
 # --- Roteamento Dinâmico para Rankings ---
+RewriteRule ^rankings/?$ rankings-index.php [L,QSA]
 RewriteRule ^rankings/estado/([a-z0-9-]+)/?$ ranking.php?slug=$1 [L,QSA]
 
 # --- URLs Limpas ---

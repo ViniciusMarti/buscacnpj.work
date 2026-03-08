@@ -15,9 +15,12 @@
 <body>
     <div class="error-card">
         <h1>404</h1>
-        <h2>Empresa não encontrada</h2>
-        <p>O CNPJ solicitado não consta em nossa base de dados ou foi digitado incorretamente.</p>
-        <a href="/" class="btn">Voltar ao Início</a>
+        <h2>Página não encontrada</h2>
+        <p>O conteúdo solicitado não consta em nossa base de dados ou foi movido.</p>
+        <div style="display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <a href="/" class="btn">Início</a>
+            <a href="/rankings/" class="btn" style="background:#334155;">Rankings</a>
+        </div>
     </div>
 </body>
 </html>

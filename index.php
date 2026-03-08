@@ -21,6 +21,8 @@ $display_count = is_numeric($total_cnpjs) ? number_format($total_cnpjs, 0, ',', 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BuscaCNPJ Gratis — Consulta Gratuita de CNPJ</title>
     <meta name="description" content="Consulte dados oficiais de qualquer CNPJ do Brasil de forma gratuita, rápida e atualizada.">
+    <?php $current_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>
+    <link rel="canonical" href="<?php echo $current_url; ?>">
     
     <!-- CSS & Fonts -->
     <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
@@ -81,8 +83,9 @@ $display_count = is_numeric($total_cnpjs) ? number_format($total_cnpjs, 0, ',', 
     <div class="header-inner">
         <a class="logo" href="/">Busca<span>CNPJ</span> Grátis</a>
         <nav>
+            <a href="/">Início</a>
+            <a href="/rankings/">Rankings</a>
             <a href="/sobre/">Sobre</a>
-            <a href="/contato/">Contato</a>
         </nav>
     </div>
 </header>
@@ -120,6 +123,8 @@ $display_count = is_numeric($total_cnpjs) ? number_format($total_cnpjs, 0, ',', 
 
 <footer>
     <nav>
+        <a href="/">Início</a>
+        <a href="/rankings/">Rankings</a>
         <a href="/sobre/">Sobre</a>
         <a href="/privacidade/">Privacidade</a>
         <a href="/contato/">Contato</a>

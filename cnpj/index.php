@@ -3,7 +3,8 @@
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
     <title>CNPJ — BuscaCNPJ Gratis — Consulta Gratuita de Empresas</title>
     <meta name="description" content="Acesse a base de dados oficial e gratuita do CNPJ. Consulte a situação cadastral, contatos e endereço de qualquer empresa brasileira.">
-    <link rel="canonical" href="https://buscacnpjgratis.com.br/cnpj/">
+    <?php $current_url = (isset($_SERVER['HTTPS']) ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"; ?>
+    <link rel="canonical" href="<?php echo $current_url; ?>">
     <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 </head>
@@ -11,7 +12,7 @@
 <header>
     <div class="header-inner">
         <a class="logo" href="/">Busca<span>CNPJ</span> Grátis</a>
-        <nav><a href="/">Início</a><a href="/sobre/">Sobre</a></nav>
+        <nav><a href="/">Início</a><a href="/rankings/">Rankings</a><a href="/sobre/">Sobre</a></nav>
     </div>
 </header>
 
@@ -41,7 +42,7 @@
 </div>
 
 <footer>
-    <nav><a href="/sobre/">Sobre</a><a href="/privacidade/">Privacidade</a><a href="/contato/">Contato</a></nav>
+    <nav><a href="/">Início</a><a href="/rankings/">Rankings</a><a href="/sobre/">Sobre</a><a href="/privacidade/">Privacidade</a><a href="/contato/">Contato</a></nav>
     <p>© 2026 BuscaCNPJ Gratis — Consulta de CNPJ Rápida e Fácil.</p>
 </footer>
 
