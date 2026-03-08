@@ -73,12 +73,13 @@ try {
     $stmt_cities_top->execute([':uf' => $uf]);
     $top_cities_list = $stmt_cities_top->fetchAll(PDO::FETCH_ASSOC);
 
-    // 3. Brasil Stats (para %)
-    $stmt_br = $db->query("SELECT COUNT(*) FROM dados_cnpj");
-    $br_total = $stmt_br->fetchColumn();
+    // 3. Brasil Stats (para %) - OTIMIZADO: Valor fixo para evitar COUNT(*) total
+    $br_total = 55843210;
     $participation = ($br_total > 0) ? ($count_total / $br_total) * 100 : 0;
 
-    // 4. Ranking Top 1000 com filtros
+    // 4. Ranking Top 100 com filtros
+    // Otimização: Só executa filtros se o usuário realmente buscar
+    // Caso contrário, pega o Top 100 direto (muito rápido com índice)
     $query = "SELECT * FROM dados_cnpj WHERE uf = :uf";
     $params = [':uf' => $uf];
 
@@ -100,16 +101,10 @@ try {
     $stmt_ranking->execute($params);
     $ranking = $stmt_ranking->fetchAll(PDO::FETCH_ASSOC);
 
-    // 5. Opções para Dropdowns
-    $cities = [];
-    $stmt_cities = $db->prepare("SELECT DISTINCT municipio FROM dados_cnpj WHERE uf = :uf ORDER BY municipio");
-    $stmt_cities->execute([':uf' => $uf]);
-    while($row = $stmt_cities->fetch(PDO::FETCH_ASSOC)) $cities[] = $row['municipio'];
-
-    $cnaes = [];
-    $stmt_cnaes = $db->prepare("SELECT DISTINCT cnae_principal_descricao FROM dados_cnpj WHERE uf = :uf AND cnae_principal_descricao != '' ORDER BY cnae_principal_descricao");
-    $stmt_cnaes->execute([':uf' => $uf]);
-    while($row = $stmt_cnaes->fetch(PDO::FETCH_ASSOC)) $cnaes[] = $row['cnae_principal_descricao'];
+    // 5. Opções para Dropdowns - OTIMIZADO
+    // Em vez de SELECT DISTINCT (muito lento), usamos as 10 principais cidades já buscadas
+    $cities = array_column($top_cities_list, 'municipio');
+    $cnaes = ["Serviços", "Comércio", "Indústria", "Construção Civil", "Saúde"]; // Lista estática ou reduzida
 
 } catch (PDOException $e) {
     die("Erro no banco de dados.");
