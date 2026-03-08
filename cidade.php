@@ -102,24 +102,24 @@ function format_money($val) {
     <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        .ranking-page { background: #fdfdfd; }
+        .ranking-page { background: var(--bg); }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin: 32px 0; }
-        .stat-card { background: white; border-radius: 20px; padding: 32px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: 0.3s; }
+        .stat-card { background: var(--surface); border-radius: 20px; padding: 32px; border: 1px solid var(--border); box-shadow: var(--shadow-sm); transition: 0.3s; }
         .stat-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-lg); border-color: var(--primary); }
         .stat-card h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); margin-bottom: 12px; }
         .stat-card .val { font-size: 1.8rem; font-weight: 900; color: var(--text); }
         .stat-card .val.money { font-size: 1.5rem; }
         
         .panorama-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 20px; margin-top: 24px; }
-        .p-item { background: var(--bg); padding: 20px; border-radius: 16px; border: 1px solid var(--border); }
+        .p-item { background: var(--surface); padding: 20px; border-radius: 16px; border: 1px solid var(--border); }
         .p-item label { display: block; font-size: 0.7rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; }
         .p-item .v { font-size: 1.1rem; font-weight: 700; color: var(--text); }
 
-        .ranking-table-wrap { overflow-x: auto; background: white; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 40px; }
+        .ranking-table-wrap { overflow-x: auto; background: var(--surface); border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-md); margin-top: 40px; }
         .ranking-table { width: 100%; border-collapse: collapse; text-align: left; }
-        .ranking-table th { background: #f8fafc; padding: 16px 24px; font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); border-bottom: 1px solid var(--border); }
+        .ranking-table th { background: var(--bg); padding: 16px 24px; font-size: 0.75rem; text-transform: uppercase; font-weight: 800; color: var(--text-muted); border-bottom: 1px solid var(--border); }
         .ranking-table td { padding: 20px 24px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .ranking-table tr:hover { background: #fdfdfd; }
+        .ranking-table tr:hover { background: var(--bg); }
         .ranking-table .rank { color: var(--primary); font-weight: 900; }
         .ranking-table .name { font-weight: 700; color: var(--text); text-decoration: none; display: block; }
         .ranking-table .name:hover { color: var(--primary); }

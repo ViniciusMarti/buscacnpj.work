@@ -51,15 +51,15 @@ function format_money($val) {
     <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
-        .rankings-hub { background: #fdfdfd; }
+        .rankings-hub { background: var(--bg); }
         .grid-states { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 40px 0; }
-        .state-card { background: white; padding: 24px; border-radius: 16px; border: 1px solid var(--border); text-decoration: none; color: var(--text); transition: 0.3s; display: flex; align-items: center; justify-content: space-between; }
+        .state-card { background: var(--surface); padding: 24px; border-radius: 16px; border: 1px solid var(--border); text-decoration: none; color: var(--text); transition: 0.3s; display: flex; align-items: center; justify-content: space-between; }
         .state-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: var(--shadow-md); color: var(--primary); }
         .state-card span { font-weight: 700; font-size: 1.1rem; }
         .state-card .arrow { font-size: 1.2rem; opacity: 0.3; }
         .state-card:hover .arrow { opacity: 1; }
 
-        .br-overview { background: white; border-radius: 24px; padding: 40px; border: 1px solid var(--border); margin-bottom: 40px; box-shadow: var(--shadow-sm); }
+        .br-overview { background: var(--surface); border-radius: 24px; padding: 40px; border: 1px solid var(--border); margin-bottom: 40px; box-shadow: var(--shadow-sm); }
         .br-stats { display: flex; gap: 40px; margin-top: 20px; }
         .br-stats .stat-item { flex: 1; }
         .br-stats label { display: block; font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 8px; }
