@@ -72,7 +72,15 @@ function format_money($val) {
         .ranking-table-mini .rank { font-weight: 900; color: var(--primary); width: 40px; }
         .ranking-table-mini .name { font-weight: 700; color: var(--text); text-decoration: none; }
         
-        @media (max-width: 768px) { .br-stats { flex-direction: column; gap: 20px; } .br-stats .val { font-size: 1.8rem; } }
+        @media (max-width: 768px) { 
+            .br-stats { flex-direction: column; gap: 20px; } 
+            .br-stats .val { font-size: 1.8rem; }
+            .br-overview { padding: 20px; border-radius: 16px; overflow-x: auto; }
+            .ranking-table-mini { min-width: 500px; }
+            .page-header h1 { font-size: 2.22rem !important; }
+        }
+        .ranking-table-container { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .page-header { position: relative; z-index: 1; }
     </style>
 </head>
 <body class="rankings-hub">
@@ -85,10 +93,10 @@ function format_money($val) {
 </header>
 
 <div class="page-wrap fade-up">
-    <div class="bc"><a href="/">Início</a> › Rankings</div>
+    <div class="bc"><a href="/">Início</a> > Rankings</div>
     
-    <header style="padding: 40px 0 20px; text-align: left; border:none; background:none;">
-        <h1 style="font-size: 3rem; margin-bottom:10px;">Relatórios & Rankings</h1>
+    <header class="page-header" style="padding: 40px 0 30px; text-align: left; border:none; background:none;">
+        <h1 style="font-size: 3rem; margin-bottom:10px; line-height: 1.1;">Relatórios & Rankings</h1>
         <p style="font-weight:700; color:var(--primary); font-size:1.1rem; margin-bottom:12px;">Inteligência de Mercado em Tempo Real</p>
         <p style="color:var(--text-muted); max-width:800px;">Explore a dinâmica empresarial do Brasil através dos nossos relatórios exclusivos. Analise capitais sociais, concentração de mercado e setores em expansão em cada unidade federativa.</p>
     </header>
@@ -107,26 +115,28 @@ function format_money($val) {
         </div>
         
         <h3 style="margin-top: 40px; margin-bottom:15px; font-size: 1.2rem;">🏆 Maiores Empresas do Brasil (Top 10)</h3>
-        <table class="ranking-table-mini">
-            <thead>
-                <tr>
-                    <th>Pos.</th>
-                    <th>Empresa</th>
-                    <th>UF</th>
-                    <th>Capital Social</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php $r = 1; foreach($top_br as $emp): ?>
-                <tr>
-                    <td class="rank">#<?php echo $r++; ?></td>
-                    <td><a href="/cnpj/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a></td>
-                    <td><?php echo $emp['uf']; ?></td>
-                    <td style="font-weight:700;"><?php echo format_money($emp['capital_social']); ?></td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
+        <div class="ranking-table-container">
+            <table class="ranking-table-mini">
+                <thead>
+                    <tr>
+                        <th>Pos.</th>
+                        <th>Empresa</th>
+                        <th>UF</th>
+                        <th>Capital Social</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <?php $r = 1; foreach($top_br as $emp): ?>
+                    <tr>
+                        <td class="rank">#<?php echo $r++; ?></td>
+                        <td><a href="/cnpj/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a></td>
+                        <td><?php echo $emp['uf']; ?></td>
+                        <td style="font-weight:700;"><?php echo format_money($emp['capital_social']); ?></td>
+                    </tr>
+                    <?php endforeach; ?>
+                </tbody>
+            </table>
+        </div>
     </div>
 
     <h2 class="sec-title">📍 Rankings por Estado</h2>
