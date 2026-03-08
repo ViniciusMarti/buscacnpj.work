@@ -1,9 +1,8 @@
+<?php
 // Otimização: Evitar COUNT(*) em tabela de 17GB a cada load. 
-// Usamos um valor aproximado ou cacheado.
-$total_cnpjs = 55843210; // Valor aproximado da base
-
-// Formatação do número
-$display_count = is_numeric($total_cnpjs) ? number_format($total_cnpjs, 0, ',', '.') : $total_cnpjs;
+// Usamos um valor aproximado da base para performance instantânea.
+$total_cnpjs = 55843210; 
+$display_count = number_format($total_cnpjs, 0, ',', '.');
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">

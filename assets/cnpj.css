@@ -71,10 +71,18 @@ header {
 .header-inner {
   max-width: 1200px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between;
 }
-.logo { font-size: 1.5rem; font-weight: 900; color: var(--text); text-decoration: none; display: flex; align-items: center; }
+.logo { 
+  font-size: 1.6rem; font-weight: 900; color: var(--text); 
+  text-decoration: none; display: flex; align-items: center; 
+  letter-spacing: -0.04em; gap: 2px;
+}
 .logo span { color: var(--primary); }
-nav { display: flex; gap: 2rem; }
-nav a { color: var(--text-muted); text-decoration: none; font-weight: 600; transition: color 0.2s; font-size: 0.9rem; }
+nav { display: flex; gap: 2.5rem; align-items: center; }
+nav a { 
+  color: var(--text-muted); text-decoration: none; 
+  font-weight: 700; transition: all 0.2s; font-size: 0.95rem; 
+  letter-spacing: -0.01em; position: relative;
+}
 nav a:hover { color: var(--primary); }
 
 /* ── Home Page Special Styles ── */
@@ -91,10 +99,10 @@ nav a:hover { color: var(--primary); }
 .home-hero p { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 3rem; }
 
 .search-container {
-  max-width: 600px; margin: 0 auto; position: relative;
-  background: var(--glass-bg); padding: 8px; border-radius: 20px;
+  max-width: 700px; width: 100%; margin: 0 auto; position: relative;
+  background: var(--glass-bg); padding: 10px; border-radius: 24px;
   border: 1px solid var(--glass-border); box-shadow: var(--shadow-lg);
-  display: flex; gap: 8px; backdrop-filter: blur(20px);
+  display: flex; gap: 10px; backdrop-filter: blur(24px);
 }
 .search-container input {
   flex: 1; border: none; background: transparent; padding: 16px 24px;
