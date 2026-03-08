@@ -132,6 +132,21 @@ nav a:hover { color: var(--primary); }
   .badge.bo { background: rgba(146, 64, 14, 0.2); color: #fbbf24; border-color: rgba(251, 191, 36, 0.3); }
 }
 
+/* ── Breadcrumbs ── */
+.bc {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 32px;
+  font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
+}
+.bc a {
+  color: var(--text-muted); text-decoration: none; transition: color 0.2s;
+  padding: 4px 8px; border-radius: 6px; background: rgba(0,0,0,0.03);
+}
+.bc a:hover { color: var(--primary); background: rgba(37, 99, 235, 0.05); }
+
+@media (prefers-color-scheme: dark) {
+  .bc a { background: rgba(255,255,255,0.05); }
+}
+
 .page-wrap { max-width: 1200px; margin: 0 auto; padding: 48px 20px 120px; }
 
 .company-hero {
