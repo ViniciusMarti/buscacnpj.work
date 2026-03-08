@@ -78,12 +78,17 @@ nav a { color: var(--text-muted); text-decoration: none; font-weight: 600; trans
 nav a:hover { color: var(--primary); }
 
 /* ── Home Page Special Styles ── */
-.home-hero {
-  padding: 100px 20px 120px; text-align: center;
-  background: radial-gradient(circle at center, rgba(37, 99, 235, 0.05) 0%, transparent 100%);
+.home-page { 
+  display: flex; flex-direction: column; min-height: 100vh; 
 }
-.home-hero h1 { font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: 1.5rem; line-height: 1; }
-.home-hero p { font-size: 1.25rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 3rem; }
+.home-hero {
+  flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center;
+  padding: 20px; text-align: center;
+  background: radial-gradient(circle at center, rgba(37, 99, 235, 0.05) 0%, transparent 100%);
+  margin-top: -64px; /* Compensação do header */
+}
+.home-hero h1 { font-size: clamp(2.5rem, 6vw, 4rem); margin-bottom: 1.5rem; line-height: 1.1; }
+.home-hero p { font-size: 1.1rem; color: var(--text-muted); max-width: 600px; margin: 0 auto 3rem; }
 
 .search-container {
   max-width: 600px; margin: 0 auto; position: relative;
