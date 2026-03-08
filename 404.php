@@ -1,8 +1,8 @@
 <!DOCTYPE html><html lang="pt-BR">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title>Página não encontrada | BuscaCNPJ.work</title>
-    <link rel="stylesheet" href="/cnpj.css?v=1.7.1">
+    <title>Página não encontrada | BuscaCNPJ Gratis</title>
+    <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         body { height: 100vh; display: flex; align-items: center; justify-content: center; text-align: center; }

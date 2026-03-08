@@ -1,35 +1,32 @@
 RewriteEngine On
 
 # --- SEGURANÇA MÁXIMA PARA DADOS ---
-# Impede que curiosos baixem o banco de dados dados.db pelo navegador
+# Bloqueio de acesso direto a pastas sensíveis
+RewriteRule ^database/ - [F,L]
+RewriteRule ^scripts/ - [F,L]
+
+# Bloqueio de download de arquivos de banco de dados
 <FilesMatch "\.(db|sqlite|sql)$">
     Require all denied
-    Order allow,deny
-    Deny from all
 </FilesMatch>
+
 # --- Roteamento Dinâmico para CNPJs ---
-# Redireciona /cnpj/12345678901234/ para cnpj.php?cnpj=12345678901234
-# Somente se a pasta física não existir (fase de transição tranquila)
-RewriteCond %{REQUEST_URI} ^/cnpj/([0-9]{14})/?$
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^cnpj/([0-9]{14})/?$ cnpj.php?cnpj=$1 [L,QSA]
 
-# --- URLs Limpas ---
-# 1. Redireciona de /pagina.html para /pagina
-RewriteCond %{THE_REQUEST} /([^.]+)\.html [NC]
-RewriteRule ^ /%1 [L,R=301]
+# --- Roteamento Dinâmico para Rankings ---
+RewriteRule ^rankings/estado/([a-z0-9-]+)/?$ ranking.php?slug=$1 [L,QSA]
 
-# 2. Serve o arquivo .html internamente se a URL não tiver extensão
+# --- URLs Limpas ---
+# Redireciona de /index.html para /
+RewriteCond %{THE_REQUEST} /index\.html [NC]
+RewriteRule ^index\.html$ / [L,R=301]
+
+# Serve o arquivo .html internamente se a URL não tiver extensão
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteCond %{REQUEST_FILENAME}\.html -f
 RewriteRule ^(.*)$ $1.html [L]
 
-# 3. Redireciona de /index.html para /
-RewriteCond %{THE_REQUEST} /index\.html [NC]
-RewriteRule ^index\.html$ / [L,R=301]
-
-DirectoryIndex index.html
+DirectoryIndex index.php index.html
 
 # --- Cache de assets estáticos ---
 <IfModule mod_headers.c>
@@ -37,4 +34,3 @@ DirectoryIndex index.html
     Header set Cache-Control "public, max-age=2592000, immutable"
   </FilesMatch>
 </IfModule>
-

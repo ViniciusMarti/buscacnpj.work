@@ -10,3 +10,12 @@ auditoria.log
 progresso.json
 __pycache__/
 .vscode/
+
+# Dados pesados
+database/sources/
+database/csv_final/
+database/*.db
+database/*.sqlite
+database/*.sql
+get_count*.py
+htaccess_temp.txt

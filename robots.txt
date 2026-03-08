@@ -12,5 +12,5 @@ User-agent: Bingbot
 Allow: /
 Crawl-delay: 2
 
-Sitemap: https://buscacnpj.work/sitemap-index.xml
-Sitemap: https://buscacnpj.work/sitemap.xml
+Sitemap: https://buscacnpjgratis.com.br/sitemap-index.xml
+Sitemap: https://buscacnpjgratis.com.br/sitemap.xml

@@ -1,6 +1,6 @@
 <?php
 // Configurações e Conexão
-$db_file = 'dados.db';
+$db_file = 'database/dados.db';
 $cnpj = preg_replace('/[^0-9]/', '', $_GET['cnpj'] ?? '');
 
 if (strlen($cnpj) !== 14) {
@@ -63,19 +63,34 @@ if ($is_updating) {
 
 $badge_class = ($situacao === 'ATIVA') ? 'ba' : (($situacao === 'INAPTA' || $situacao === 'BAIXADA') ? 'ro' : 'bo');
 
+// SEO Optimizations
+$meta_title = "$nome - CNPJ $cnpj_f - $situacao";
+if (strlen($meta_title) > 60) {
+    // Se o nome for muito longo, tentamos encurtar mantendo o CNPJ e Situação
+    $available_space = 60 - strlen(" - CNPJ $cnpj_f - $situacao");
+    $short_nome = mb_strimwidth($nome, 0, $available_space, "...");
+    $meta_title = "$short_nome - CNPJ $cnpj_f - $situacao";
+}
+
+$cidade_uf = ($data['municipio'] && $data['uf']) ? $data['municipio'] . '/' . $data['uf'] : ($data['municipio'] ?: $data['uf'] ?: 'Brasil');
+$meta_description = "Dados completos da $nome (CNPJ $cnpj_f). Confira o endereço em $cidade_uf, situação cadastral $situacao, CNAE, capital social e quadro de sócios.";
+if (strlen($meta_description) > 155) {
+    $meta_description = mb_strimwidth($meta_description, 0, 155, "...");
+}
+
 ?>
 <!DOCTYPE html><html lang="pt-BR">
 <head>
     <meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
-    <title><?php echo $nome; ?> — CNPJ <?php echo $cnpj_f; ?> | BuscaCNPJ.work</title>
-    <meta name="description" content="Dados do CNPJ <?php echo $cnpj_f; ?>: <?php echo $nome; ?>. Situação <?php echo $situacao; ?>.">
-    <link rel="canonical" href="https://buscacnpj.work/cnpj/<?php echo $cnpj; ?>/">
-    <link rel="stylesheet" href="../../cnpj.css?v=1.7.1">
+    <title><?php echo $meta_title; ?></title>
+    <meta name="description" content="<?php echo $meta_description; ?>">
+    <link rel="canonical" href="https://buscacnpjgratis.com.br/cnpj/<?php echo $cnpj; ?>/">
+    <link rel="stylesheet" href="/assets/cnpj.css?v=1.7.1">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "<?php echo $nome; ?>", "taxID": "<?php echo $cnpj_f; ?>"}</script>
 </head>
 <body>
-<header><div class="header-inner"><a class="logo" href="/">Busca<span>CNPJ</span>.work</a><nav><a href="/">Início</a><a href="/sobre/">Sobre</a></nav></div></header>
+<header><div class="header-inner"><a class="logo" href="/">Busca<span>CNPJ</span> Grátis</a><nav><a href="/">Início</a><a href="/sobre/">Sobre</a></nav></div></header>
 <div class="page-wrap fade-up">
     <div class="bc"><a href="/">Início</a> / <a href="/cnpj/">CNPJ</a> / <?php echo $cnpj_f; ?></div>
     <div class="company-hero">
@@ -173,27 +188,8 @@ $badge_class = ($situacao === 'ATIVA') ? 'ba' : (($situacao === 'INAPTA' || $sit
         </ul>
     </div>
 
-    <div class="partner-section">
-        <div style="margin-bottom:2rem; opacity:0.6; font-weight:800; letter-spacing:2px; text-transform:uppercase; font-size:0.75rem;">Sugestão para seu negócio</div>
-        <h2 style="font-size:3rem; margin-bottom:1rem;">Hostinger Brasil</h2>
-        <p style="font-size:1.2rem; margin-bottom:4rem;">Hospedagem profissional com performance de elite para sua nova empresa.</p>
-        <div class="partner-grid">
-            <div class="partner-card">
-                <span class="badge ba" style="margin-bottom:1rem;">Hospedagem Business</span>
-                <h3>Sites de Alta Performance</h3>
-                <div class="partner-price">R$ 19,99<span>/mês</span></div>
-                <a href="https://www.hostinger.com/br?REFERRALCODE=1VINICIUS74" class="btn-cta" target="_blank">Ativar Oferta</a>
-            </div>
-            <div class="partner-card">
-                <span class="badge bo" style="margin-bottom:1rem;">Email Business</span>
-                <h3>Email Corporativo</h3>
-                <div class="partner-price">R$ 9,95<span>/mês</span></div>
-                <a href="https://www.hostinger.com/br?REFERRALCODE=1VINICIUS74" class="btn-cta" target="_blank">Criar Email</a>
-            </div>
-        </div>
-    </div>
 </div>
-<footer><nav><a href="/">Início</a><a href="/sobre/">Sobre</a><a href="/privacidade/">Privacidade</a><a href="/contato/">Contato</a></nav><p>© 2026 BuscaCNPJ.work — Todos os direitos reservados.</p></footer>
+<footer><nav><a href="/">Início</a><a href="/sobre/">Sobre</a><a href="/privacidade/">Privacidade</a><a href="/contato/">Contato</a></nav><p>© 2026 BuscaCNPJ Gratis — Todos os direitos reservados.</p></footer>
 <script>
 function copyText(txt, btn) {
     navigator.clipboard.writeText(txt).then(() => {
