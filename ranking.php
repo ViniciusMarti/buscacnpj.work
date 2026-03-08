@@ -86,7 +86,7 @@ try {
     // 4. Ranking Top 100 com filtros
     // Otimização: Só executa filtros se o usuário realmente buscar
     // Caso contrário, pega o Top 100 direto (muito rápido com índice)
-    $query = "SELECT * FROM dados_cnpj WHERE uf = :uf";
+    $query = "SELECT * FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf";
     $params = [':uf' => $uf];
 
     if ($search) {
