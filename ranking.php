@@ -52,7 +52,8 @@ try {
 
     // 2. Panorama
     // Idade Média (aproximada pela data de abertura)
-    $stmt_age = $db->prepare("SELECT AVG(YEAR(CURDATE()) - YEAR(STR_TO_DATE(LEFT(data_abertura,10), '%Y-%m-%d'))) FROM dados_cnpj WHERE uf = :uf AND data_abertura != ''");
+    // Para SQLite: strftime('%Y', 'now') - strftime('%Y', data_abertura)
+    $stmt_age = $db->prepare("SELECT AVG(strftime('%Y', 'now') - strftime('%Y', substr(data_abertura,1,10))) FROM dados_cnpj WHERE uf = :uf AND data_abertura != ''");
     $stmt_age->execute([':uf' => $uf]);
     $avg_age = round($stmt_age->fetchColumn() ?: 0);
 
