@@ -1,5 +1,7 @@
 import sqlite3
 import os
+import unicodedata
+import re
 
 # Caminho para o banco de dados relativo a este script
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -21,7 +23,50 @@ def gerar_sitemap():
     
     # Busca todos os CNPJs ativos ou com razão social
     print("Buscando CNPJs no banco de dados...")
-    cnpjs = [row[0] for row in cursor.execute("SELECT cnpj FROM dados_cnpj WHERE razao_social != ''").fetchall()]
+    cursor.execute("SELECT cnpj FROM dados_cnpj WHERE razao_social != ''")
+    cnpjs = [row[0] for row in cursor.fetchall()]
+
+    print("Gerando sitemap de rankings (Estados e Cidades)...")
+    states_dict = {
+        'acre': 'AC', 'alagoas': 'AL', 'amapa': 'AP', 'amazonas': 'AM', 
+        'bahia': 'BA', 'ceara': 'CE', 'distrito-federal': 'DF', 'espirito-santo': 'ES', 
+        'goias': 'GO', 'maranhao': 'MA', 'mato-grosso': 'MT', 'mato-grosso-do-sul': 'MS', 
+        'minas-gerais': 'MG', 'para': 'PA', 'paraiba': 'PB', 'parana': 'PR', 
+        'pernambuco': 'PE', 'piaui': 'PI', 'rio-de-janeiro': 'RJ', 'rio-grande-do-norte': 'RN', 
+        'rio-grande-do-sul': 'RS', 'rondonia': 'RO', 'roraima': 'RR', 'santa-catarina': 'SC', 
+        'sao-paulo': 'SP', 'sergipe': 'SE', 'tocantins': 'TO'
+    }
+
+    def slugify(text):
+        text = unicodedata.normalize('NFKD', str(text)).encode('ascii', 'ignore').decode('utf-8')
+        text = text.lower().replace(' ', '-')
+        return re.sub(r'[^a-z0-9-]', '', text)
+
+    rankings_urls = ["https://buscacnpjgratis.com.br/rankings/"]
+    
+    for slug, uf in states_dict.items():
+        state_url = f"https://buscacnpjgratis.com.br/rankings/estado/{slug}/"
+        rankings_urls.append(state_url)
+        
+        # Buscar top 10 cidades
+        cursor.execute("SELECT municipio FROM dados_cnpj WHERE uf = ? GROUP BY municipio ORDER BY COUNT(*) DESC LIMIT 10", (uf,))
+        cities = cursor.fetchall()
+        for city_row in cities:
+            if city_row[0]:
+                city_slug = slugify(city_row[0])
+                if city_slug:
+                    city_url = f"https://buscacnpjgratis.com.br/rankings/estado/{slug}/{city_slug}/"
+                    rankings_urls.append(city_url)
+
+    # Salva sitemap-rankings.xml
+    path_rankings = os.path.join(OUTPUT_DIR, "sitemap-rankings.xml")
+    with open(path_rankings, "w", encoding="utf-8") as f:
+        f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
+        f.write('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
+        for url in rankings_urls:
+            f.write(f'  <url><loc>{url}</loc><changefreq>weekly</changefreq><priority>0.8</priority></url>\n')
+        f.write('</urlset>')
+
     
     if not cnpjs:
         print("Nenhum CNPJ com dados encontrado no banco.")
@@ -58,6 +103,7 @@ def gerar_sitemap():
         f.write('  <sitemap><loc>https://buscacnpjgratis.com.br/sitemaps/sitemap-main.xml</loc></sitemap>\n')
         for s in sitemaps:
             f.write(f'  <sitemap><loc>https://buscacnpjgratis.com.br/sitemaps/{s}</loc></sitemap>\n')
+        f.write('  <sitemap><loc>https://buscacnpjgratis.com.br/sitemaps/sitemap-rankings.xml</loc></sitemap>\n')
         f.write('</sitemapindex>')
 
     conn.close()
