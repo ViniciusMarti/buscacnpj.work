@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 gerador_v4_b.py — BuscaCNPJ.work
-Versão PREMIUM UAU — 2026-03-07
+Versão PREMIUM UAU — 2026-03-08
 Gera páginas com design expansivo, glassmorphism e navegação aprimorada.
+Agora com suporte à API OpenCNPJ.
 """
 
 import requests, os, json, time, logging
@@ -13,12 +14,13 @@ from threading import Lock
 BASE_DIR      = "."
 DOMAIN        = "https://buscacnpj.work"
 PROGRESS_FILE = "progresso.json"
-MAX_WORKERS   = 8
-SLEEP         = 0.2
+MAX_WORKERS   = 20 # Aumentado para aproveitar o rate limit do OpenCNPJ
+SLEEP         = 0.1
 SAVE_EVERY    = 50
+API_OPENCNPJ  = "https://api.opencnpj.org/"
 API_BRASIL    = "https://brasilapi.com.br/api/cnpj/v1/"
 API_MINHA_REC = "https://minhareceita.org/"
-VERSION       = "1.4"
+VERSION       = "1.7" # Sincronizado com reparo e cache
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,34 +32,63 @@ log  = logging.getLogger(__name__)
 lock = Lock()
 
 def fmt_cnpj(c):
-    c = c.zfill(14)
+    c = str(c).zfill(14)
     return f"{c[:2]}.{c[2:5]}.{c[5:8]}/{c[8:12]}-{c[12:]}"
 
 def fmt_brl(v):
     try:
+        if isinstance(v, str):
+            v = v.replace(".", "").replace(",", ".")
         return f"R$\xa0{float(v):,.2f}".replace(",","X").replace(".",",").replace("X",".")
     except:
         return "R$\xa00,00"
 
 def fmt_date(d):
     try:
+        if not d or d == "—": return "—"
+        if "/" in d: return d
         return datetime.strptime(d, "%Y-%m-%d").strftime("%d/%m/%Y")
     except:
         return d or "—"
 
 def norm(data):
-    cnpj = "".join(x for x in data.get("cnpj","") if x.isdigit())
+    cnpj = "".join(x for x in str(data.get("cnpj","")) if x.isdigit())
+    
+    situacao = (data.get("descricao_situacao_cadastral") or 
+                data.get("descrição_situação_cadastral") or 
+                data.get("situacao_cadastral") or "N/A")
+    
+    data_abertura = fmt_date(data.get("data_inicio_atividade") or data.get("data_abertura") or "")
+    
+    porte = data.get("porte") or data.get("porte_empresa") or "—"
+    
+    tel = data.get("ddd_telefone_1") or ""
+    if not tel and data.get("telefones") and isinstance(data["telefones"], list) and len(data["telefones"]) > 0:
+        t = data["telefones"][0]
+        if isinstance(t, dict):
+            tel = f"({t.get('ddd','')}) {t.get('numero','')}".replace("None", "").strip()
+            if tel == "()": tel = ""
+    
+    socios = data.get("qsa") or data.get("QSA") or []
+    
+    cnae_desc = (data.get("cnae_fiscal_descricao") or 
+                 data.get("cnae_fiscal_descrição") or 
+                 data.get("cnae_principal_descricao") or 
+                 data.get("cnae_principal") or "—")
+    
+    cnae_cod = str(data.get("cnae_fiscal") or data.get("cnae_principal") or "")
+
     return {
         "cnpj":             cnpj,
         "razao_social":     data.get("razao_social") or data.get("razão_social") or "N/A",
         "nome_fantasia":    data.get("nome_fantasia") or data.get("nome_comercial") or "",
-        "situacao":         data.get("descricao_situacao_cadastral") or data.get("descrição_situação_cadastral") or "N/A",
-        "data_abertura":    fmt_date(data.get("data_inicio_atividade","")),
-        "porte":            data.get("porte") or "—",
+        "situacao":         situacao,
+        "data_abertura":    data_abertura,
+        "porte":            porte,
         "natureza_juridica":data.get("natureza_juridica") or "—",
         "capital_social":   fmt_brl(data.get("capital_social",0)),
         "email":            data.get("email") or "",
-        "telefone":         data.get("ddd_telefone_1") or "",
+        "telefone":         tel,
         "logradouro":       data.get("logradouro") or "—",
         "numero":           data.get("numero") or "S/N",
         "complemento":      data.get("complemento") or "",
@@ -65,10 +96,10 @@ def norm(data):
         "municipio":        data.get("municipio") or data.get("município") or "—",
         "uf":               data.get("uf") or "—",
         "cep":              data.get("cep") or "—",
-        "cnae_principal":   data.get("cnae_fiscal_descricao") or data.get("cnae_fiscal_descrição") or "—",
-        "cnae_codigo":      str(data.get("cnae_fiscal","") or ""),
+        "cnae_principal":   cnae_desc,
+        "cnae_codigo":      cnae_cod,
         "cnaes_secundarios":data.get("cnaes_secundarios",[]),
-        "qsa":              data.get("qsa",[]),
+        "qsa":              socios,
     }
 
 # Assets & Icons
@@ -81,7 +112,7 @@ ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
 def gerar_html(data):
     d = norm(data)
     razao = d["razao_social"]
-    nome = razao.upper() # O H1 e Título agora serão a Razão Social
+    nome = razao.upper()
     nome_fantasia = (d["nome_fantasia"] or "").upper()
     cnpj_f = fmt_cnpj(d["cnpj"])
     cnpj_r = d["cnpj"]
@@ -91,8 +122,8 @@ def gerar_html(data):
     badge_txt = d["situacao"]
 
     # Sócios & CNAEs
-    socios_html = "".join([f'<li><strong>{s.get("nome_socio","—")}</strong><span>{s.get("qualificacao_socio","Sócio")}</span></li>' for s in d["qsa"]]) or "<li><span>Informação não disponível</span></li>"
-    cnaes_sec = "".join([f'<li><strong>{c.get("descricao","—")}</strong><span>CNAE {c.get("codigo","")}</span></li>' for c in d["cnaes_secundarios"]]) or "<li><span>—</span></li>"
+    socios_html = "".join([f'<li><strong>{s.get("nome_socio","—") if isinstance(s, dict) else s}</strong><span>{s.get("qualificacao_socio","Sócio") if isinstance(s, dict) else "Sócio"}</span></li>' for s in d["qsa"]]) or "<li><span>Informação não disponível</span></li>"
+    cnaes_sec = "".join([f'<li><strong>{c.get("descricao","—") if isinstance(c, dict) else c}</strong><span>CNAE {c.get("codigo","") if isinstance(c, dict) else ""}</span></li>' for c in d["cnaes_secundarios"]]) or "<li><span>—</span></li>"
 
     title = f"{nome} — CNPJ {cnpj_f} | BuscaCNPJ.work"
     desc = f"Dados do CNPJ {cnpj_f}: {razao}. Situação {d['situacao']}. Localizada em {d['municipio']}/{d['uf']}."
@@ -165,14 +196,12 @@ def gerar_html(data):
             <div class="partner-card">
                 <span class="badge ba" style="margin-bottom:1rem;">Hospedagem Business</span>
                 <h3>Sites de Alta Performance</h3>
-                <p>Ideal para empresas que buscam rapidez e estabilidade total.</p>
                 <div class="partner-price">R$ 19,99<span>/mês</span></div>
                 <a href="https://www.hostinger.com/br?REFERRALCODE=1VINICIUS74" class="btn-cta" target="_blank">Ativar Oferta</a>
             </div>
             <div class="partner-card">
                 <span class="badge bo" style="margin-bottom:1rem;">Email Business</span>
                 <h3>Email Corporativo</h3>
-                <p>E-mails @suaempresa para transmitir profissionalismo voador.</p>
                 <div class="partner-price">R$ 9,95<span>/mês</span></div>
                 <a href="https://www.hostinger.com/br?REFERRALCODE=1VINICIUS74" class="btn-cta" target="_blank">Criar Email</a>
             </div>
@@ -190,10 +219,8 @@ function copyText(txt, btn) {{
     navigator.clipboard.writeText(txt).then(() => {{
         const originalText = btn.innerHTML;
         btn.innerHTML = "Copiado!";
-        btn.style.borderColor = "#10b981";
-        btn.style.color = "#10b981";
-        setTimeout(() => {{ btn.innerHTML = originalText; btn.style = ""; }}, 2000);
-    }});
+        setTimeout(() => {{ btn.innerHTML = originalText; }}, 2000);
+    }}).catch(() => {{}});
 }}
 </script>
 </body></html>"""
@@ -249,12 +276,22 @@ function buscar(){{
         f.write(html)
 
 def fetch(cnpj):
-    for url in [f"{API_BRASIL}{cnpj}", f"{API_MINHA_REC}{cnpj}"]:
+    urls = [
+        f"{API_OPENCNPJ}{cnpj}",
+        f"{API_BRASIL}{cnpj}", 
+        f"{API_MINHA_REC}{cnpj}"
+    ]
+    for url in urls:
         try:
-            r = requests.get(url, timeout=12, headers={"User-Agent":"BuscaCNPJ-Bot/1.0"})
-            if r.status_code == 200: return r.json()
-            if r.status_code == 404: return None
-            if r.status_code == 429: time.sleep(20)
+            r = requests.get(url, timeout=10, headers={"User-Agent":"BuscaCNPJ-Bot/1.7"})
+            if r.status_code == 200: 
+                data = r.json()
+                if len(data.keys()) > 5:
+                    return data
+            if r.status_code == 404: continue
+            if r.status_code == 429: 
+                log.warning("Rate limit em %s. Aguardando 1s...", url)
+                time.sleep(1)
         except: pass
     return None
 
@@ -276,6 +313,10 @@ def processar(cnpj):
 
 def main():
     os.makedirs(f"{BASE_DIR}/cnpj", exist_ok=True)
+    if not os.path.exists(PROGRESS_FILE):
+        log.error("Arquivo %s não encontrado!", PROGRESS_FILE)
+        return
+
     with open(PROGRESS_FILE,"r") as f:
         prog = json.load(f)
     processed = prog["processed"]

@@ -2,7 +2,7 @@
 """
 reparo_api.py — BuscaCNPJ.work
 Script para identificar CNPJs com dados faltantes (marcados como —)
-e consultar novamente as APIs para completar as informações.
+e consultar novamente as APIs (agora incluindo OpenCNPJ) para completar as informações.
 """
 
 import requests, os, json, time, logging, re
@@ -14,12 +14,12 @@ from pathlib import Path
 BASE_DIR      = "."
 CNPJ_DIR      = Path("./cnpj")
 LOG_FILE      = "reparo_api.log"
-MAX_WORKERS   = 50 # Acelerado conforme pedido do usuário
-SLEEP_FETCH   = 0.1
+MAX_WORKERS   = 20 # Mantendo equilibrado para não exceder limites bruscamente
+API_OPENCNPJ  = "https://api.opencnpj.org/"
 API_BRASIL    = "https://brasilapi.com.br/api/cnpj/v1/"
 API_MINHA_REC = "https://minhareceita.org/"
 DOMAIN        = "https://buscacnpj.work"
-VERSION       = "1.3"
+VERSION       = "1.7" # Versão atual fixada
 
 logging.basicConfig(
     level=logging.INFO,
@@ -30,11 +30,14 @@ logging.basicConfig(
 log = logging.getLogger(__name__)
 
 def fmt_cnpj(c):
-    c = c.zfill(14)
+    c = str(c).zfill(14)
     return f"{c[:2]}.{c[2:5]}.{c[5:8]}/{c[8:12]}-{c[12:]}"
 
 def fmt_brl(v):
     try:
+        # Resolve problema com formatos de string "1000,00"
+        if isinstance(v, str):
+            v = v.replace(".", "").replace(",", ".")
         return f"R$\xa0{float(v):,.2f}".replace(",","X").replace(".",",").replace("X",".")
     except:
         return "R$\xa00,00"
@@ -42,23 +45,53 @@ def fmt_brl(v):
 def fmt_date(d):
     try:
         if not d or d == "—": return "—"
+        if "/" in d: return d # Já formatado
         return datetime.strptime(d, "%Y-%m-%d").strftime("%d/%m/%Y")
     except:
         return d or "—"
 
 def norm(data):
-    cnpj = "".join(x for x in data.get("cnpj","") if x.isdigit())
+    cnpj = "".join(x for x in str(data.get("cnpj","")) if x.isdigit())
+    
+    # Mapeamentos flexíveis para diferentes APIs
+    situacao = (data.get("descricao_situacao_cadastral") or 
+                data.get("descrição_situação_cadastral") or 
+                data.get("situacao_cadastral") or "N/A")
+    
+    data_abertura = fmt_date(data.get("data_inicio_atividade") or data.get("data_abertura") or "")
+    
+    porte = data.get("porte") or data.get("porte_empresa") or "—"
+    
+    # Telefone: OpenCNPJ tem lista, outros tem campo fixo
+    tel = data.get("ddd_telefone_1") or ""
+    if not tel and data.get("telefones") and isinstance(data["telefones"], list) and len(data["telefones"]) > 0:
+        t = data["telefones"][0]
+        if isinstance(t, dict):
+            tel = f"({t.get('ddd','')}) {t.get('numero','')}".replace("None", "").strip()
+            if tel == "()": tel = ""
+    
+    # QSA
+    socios = data.get("qsa") or data.get("QSA") or []
+    
+    # CNAE Principal
+    cnae_desc = (data.get("cnae_fiscal_descricao") or 
+                 data.get("cnae_fiscal_descrição") or 
+                 data.get("cnae_principal_descricao") or 
+                 data.get("cnae_principal") or "—") # OpenCNPJ só manda código as vezes
+    
+    cnae_cod = str(data.get("cnae_fiscal") or data.get("cnae_principal") or "")
+
     return {
         "cnpj":             cnpj,
         "razao_social":     data.get("razao_social") or data.get("razão_social") or "N/A",
         "nome_fantasia":    data.get("nome_fantasia") or data.get("nome_comercial") or "",
-        "situacao":         data.get("descricao_situacao_cadastral") or data.get("descrição_situação_cadastral") or "N/A",
-        "data_abertura":    fmt_date(data.get("data_inicio_atividade","")),
-        "porte":            data.get("porte") or "—",
+        "situacao":         situacao,
+        "data_abertura":    data_abertura,
+        "porte":            porte,
         "natureza_juridica":data.get("natureza_juridica") or "—",
-        "capital_social":   fmt_brl(data.get("capital_social",0)),
+        "capital_social":   fmt_brl(data.get("capital_social", 0)),
         "email":            data.get("email") or "",
-        "telefone":         data.get("ddd_telefone_1") or "",
+        "telefone":         tel,
         "logradouro":       data.get("logradouro") or "—",
         "numero":           data.get("numero") or "S/N",
         "complemento":      data.get("complemento") or "",
@@ -66,13 +99,15 @@ def norm(data):
         "municipio":        data.get("municipio") or data.get("município") or "—",
         "uf":               data.get("uf") or "—",
         "cep":              data.get("cep") or "—",
-        "cnae_principal":   data.get("cnae_fiscal_descricao") or data.get("cnae_fiscal_descrição") or "—",
-        "cnae_codigo":      str(data.get("cnae_fiscal","") or ""),
+        "cnae_principal":   cnae_desc,
+        "cnae_codigo":      cnae_cod,
         "cnaes_secundarios":data.get("cnaes_secundarios",[]),
-        "qsa":              data.get("qsa",[]),
+        "qsa":              socios,
     }
 
-def gerar_html_v1_3(data):
+ICON_COPY = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>'
+
+def gerar_html_v1_7(data):
     d = norm(data)
     razao = d["razao_social"]
     nome = razao.upper()
@@ -94,6 +129,7 @@ def gerar_html_v1_3(data):
 
     title = f"{nome} — CNPJ {cnpj_f} | BuscaCNPJ.work"
     desc = f"Dados do CNPJ {cnpj_f}: {razao}. Situação {d['situacao']}."
+    schema = json.dumps({"@context":"https://schema.org","@type":"Organization","name":nome,"taxID":cnpj_f}, ensure_ascii=False)
     
     return f"""<!DOCTYPE html><html lang="pt-BR">
 <head>
@@ -103,6 +139,7 @@ def gerar_html_v1_3(data):
     <link rel="canonical" href="{DOMAIN}/cnpj/{cnpj_r}/">
     <link rel="stylesheet" href="../../cnpj.css?v={VERSION}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script type="application/ld+json">{schema}</script>
 </head>
 <body>
 <header><div class="header-inner"><a class="logo" href="/">Busca<span>CNPJ</span>.work</a><nav><a href="/">Início</a><a href="/sobre/">Sobre</a></nav></div></header>
@@ -114,9 +151,9 @@ def gerar_html_v1_3(data):
         {f'<p style="color:var(--text-muted); font-size: 0.9rem; margin-top:-10px; margin-bottom:10px;">{nome_fantasia}</p>' if nome_fantasia and nome_fantasia != nome else ''}
         <p style="color:var(--text-muted); font-weight:600; margin-bottom: 20px;">CNPJ {cnpj_f}</p>
         <div class="copy-group">
-            <button class="btn-copy" onclick="copyText('{razao}', this)">Copiar Nome</button>
-            <button class="btn-copy" onclick="copyText('{cnpj_r}', this)">Copiar CNPJ</button>
-            <button class="btn-copy" onclick="copyText('{cnpj_f}', this)">Formatado</button>
+            <button class="btn-copy" onclick="copyText('{razao}', this)">{ICON_COPY} Copiar Nome</button>
+            <button class="btn-copy" onclick="copyText('{cnpj_r}', this)">{ICON_COPY} Copiar CNPJ</button>
+            <button class="btn-copy" onclick="copyText('{cnpj_f}', this)">{ICON_COPY} Formatado</button>
         </div>
     </div>
     <h2 class="sec-title">Dados de Registro</h2>
@@ -143,7 +180,8 @@ def gerar_html_v1_3(data):
     <div class="info-box"><ul style="list-style:none; padding-top:10px;">{socios_html}</ul></div>
     <div class="partner-section">
         <div style="margin-bottom:2rem; opacity:0.6; font-weight:800; letter-spacing:2px; text-transform:uppercase; font-size:0.75rem;">Sugestão para seu negócio</div>
-        <h2 style="font-size:3rem; margin-bottom:1rem; color:#fff;">Hostinger Brasil</h2>
+        <h2 style="font-size:3rem; margin-bottom:1rem;">Hostinger Brasil</h2>
+        <p style="font-size:1.2rem; margin-bottom:4rem;">Hospedagem profissional com performance de elite para sua nova empresa.</p>
         <div class="partner-grid">
             <div class="partner-card">
                 <span class="badge ba" style="margin-bottom:1rem;">Hospedagem Business</span>
@@ -173,23 +211,27 @@ function copyText(txt, btn) {{
 </body></html>"""
 
 def fetch(cnpj):
-    # Tenta BrasilAPI primeiro, depois MinhaReceita
-    for url in [f"{API_BRASIL}{cnpj}", f"{API_MINHA_REC}{cnpj}"]:
+    # Tenta OpenCNPJ primeiro conforme pedido, depois as outras
+    urls = [
+        f"{API_OPENCNPJ}{cnpj}",
+        f"{API_BRASIL}{cnpj}", 
+        f"{API_MINHA_REC}{cnpj}"
+    ]
+    for url in urls:
         try:
-            r = requests.get(url, timeout=12, headers={"User-Agent":"BuscaCNPJ-Repair/1.0"})
+            r = requests.get(url, timeout=10, headers={"User-Agent":"BuscaCNPJ-Repair/1.7"})
             if r.status_code == 200: 
                 data = r.json()
-                # Verifica se retornou dados úteis (não apenas CNPJ)
                 if len(data.keys()) > 5:
                     return data
             if r.status_code == 429: 
-                log.warning("Rate limit atingido. Dormido 1s...")
+                log.warning("Rate limit atingido em %s. Dormindo 1s...", url)
                 time.sleep(1)
         except: pass
     return None
 
 def check_needs_repair(html):
-    # Conta ocorrências de <p>—</p> ou campos vazios
+    # Conta ocorrências de <p>—</p>
     placeholders = len(re.findall(r'<p>—</p>', html))
     # Campos críticos que não devem ser —
     missing_critical = any(x in html for x in [
@@ -197,7 +239,7 @@ def check_needs_repair(html):
         '<label>Data de Abertura</label><p>—</p>',
         '<label>Endereço</label><p>—, S/N </p>'
     ])
-    return placeholders >= 4 or missing_critical
+    return placeholders >= 3 or missing_critical
 
 def repair_folder(folder: Path):
     path = folder / "index.html"
@@ -209,14 +251,14 @@ def repair_folder(folder: Path):
             return folder.name, "SKIP"
         
         cnpj = folder.name
-        log.info("Reparando CNPJ %s via API...", cnpj)
+        log.info("Reparando CNPJ %s...", cnpj)
         data = fetch(cnpj)
         
         if not data:
             return cnpj, "API_FAIL"
         
-        # Gera novo HTML
-        new_html = gerar_html_v1_3(data)
+        # Gera novo HTML v1.7
+        new_html = gerar_html_v1_7(data)
         path.write_text(new_html, encoding="utf-8")
         return cnpj, "FIXED"
         
@@ -226,7 +268,7 @@ def repair_folder(folder: Path):
 def main():
     folders = [p for p in CNPJ_DIR.iterdir() if p.is_dir()]
     total = len(folders)
-    log.info("Iniciando REPARO VIA API em %d pastas...", total)
+    log.info("Iniciando REPARO VIA API (OpenCNPJ) em %d pastas...", total)
     
     counts = {"FIXED": 0, "SKIP": 0, "API_FAIL": 0, "ERROR": 0, "MISSING": 0}
     
@@ -237,14 +279,9 @@ def main():
             if status.startswith("ERROR"): counts["ERROR"] += 1
             else: counts[status] += 1
             
-            if i % 50 == 0 or i == total:
-                log.info("Progresso: %d/%d | FIX:%d SKIP:%d FAIL:%d ERR:%d", 
+            if i % 5000 == 0 or i == total:
+                log.info("Progresso: %d/%d | FIXED:%d SKIP:%d FAIL:%d ERR:%d", 
                          i, total, counts["FIXED"], counts["SKIP"], counts["API_FAIL"], counts["ERROR"])
-            
-            # Limite de 1000 removido para terminar logo
-            # if counts["FIXED"] >= 1000:
-            #     log.info("Limite de 1000 reparos atingido. Parando por segurança.")
-            #     break
             
     log.info("Finalizado: %s", counts)
 
