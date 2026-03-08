@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function() {
             window.dataLayer = window.dataLayer || [];
             window.dataLayer.push({
                 'event': 'text_copied',
-                'copied_length': copiedText.length,
+                'text_length': copiedText.length,
                 'is_number': justNumbers.length > 3,
                 'is_cnpj': justNumbers.length === 14
             });
