@@ -1,68 +1,37 @@
 <?php
-// Configuração centralizada do banco de dados SQLite
-// O banco de dados fica na raiz da conta, fora do public_html para segurança e deploy Git
-define('DB_PATH', dirname(__DIR__, 2) . '/database_cnpj.sqlite');
-define('CNAE_DB_PATH', __DIR__ . '/../database/cnae.db');
+// Configuração centralizada do banco de dados MySQL
+// Banco e usuário: u501810552_buscacnpj
+define('DB_HOST', 'localhost'); // Na Hostinger, o DB host geralmente é localhost
+define('DB_NAME', 'u501810552_buscacnpj');
+define('DB_USER', 'u501810552_buscacnpj');
+// ATENÇÃO: Por favor, substitua a string abaixo pela senha real do banco MySQL criado
+define('DB_PASS', 'qPMwBp#WW*BN6k'); 
 
 function getDB(): PDO {
     static $pdo = null;
     if ($pdo === null) {
         try {
-            // Verificar se o arquivo existe (opcional, mas bom para debug)
-            if (!file_exists(DB_PATH)) {
-                // Caso não encontre no caminho padrão, tenta caminho relativo simples para o servidor
-                // Tenta localizar na pasta raiz do domínio (comum na Hostinger)
-                $path = dirname($_SERVER['DOCUMENT_ROOT']) . '/database_cnpj.sqlite';
-                if (!file_exists($path)) {
-                    // Fallback para o caminho definido
-                    $path = DB_PATH;
-                }
-            } else {
-                $path = DB_PATH;
-            }
-
-            $dsn = "sqlite:" . $path;
+            $dsn = "mysql:host=" . DB_HOST . ";dbname=" . DB_NAME . ";charset=utf8mb4";
             $options = [
                 PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
                 PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
                 PDO::ATTR_EMULATE_PREPARES   => false,
             ];
-            $pdo = new PDO($dsn, null, null, $options);
-            
-            // Habilitar performance em SQLite
-            $pdo->exec("PRAGMA journal_mode = WAL;");
-            $pdo->exec("PRAGMA synchronous = NORMAL;");
+            $pdo = new PDO($dsn, DB_USER, DB_PASS, $options);
             
         } catch (PDOException $e) {
-            die("Erro ao conectar com o banco de dados SQLite: " . $e->getMessage());
+            die("Erro ao conectar com o banco de dados MySQL: " . $e->getMessage());
         }
     }
     return $pdo;
 }
 
+// Como você indicou o mesmo banco, estou assumindo que a tabela de CNAE ('cnaes')
+// também foi exportada ou criada dentro deste banco MySQL. 
 function getCNAEDB(): ?PDO {
-    static $pdo_cnae = null;
-    static $tried = false;
-    if ($tried) return $pdo_cnae;
-    $tried = true;
     try {
-        // Tenta caminho relativo ao projeto (local e servidor dentro de public_html)
-        $path = CNAE_DB_PATH;
-        // Fallback: tenta ao lado do database_cnpj.sqlite na raiz da conta (servidor)
-        if (!file_exists($path)) {
-            $path = dirname($_SERVER['DOCUMENT_ROOT'] ?? __DIR__) . '/cnae.db';
-        }
-        if (!file_exists($path)) {
-            return null; // Banco CNAE não encontrado — silencioso, não quebra a página
-        }
-        $options = [
-            PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-            PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-            PDO::ATTR_EMULATE_PREPARES   => false,
-        ];
-        $pdo_cnae = new PDO("sqlite:" . $path, null, null, $options);
-    } catch (PDOException $e) {
-        $pdo_cnae = null; // Silencioso
+        return getDB();
+    } catch (Exception $e) {
+        return null;
     }
-    return $pdo_cnae;
 }
