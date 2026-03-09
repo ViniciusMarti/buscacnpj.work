@@ -7,6 +7,8 @@ require_once __DIR__ . '/config/db.php';
 
 try {
     $db = getDB();
+    set_time_limit(60); // Aumenta tempo para processar o ranking nacional (17GB)
+
     
     // Configurações do Cache
     $cache_dir = __DIR__ . '/cache/rankings';

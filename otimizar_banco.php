@@ -32,8 +32,11 @@ try {
         "CREATE INDEX IF NOT EXISTS idx_capital ON dados_cnpj(capital_social DESC);",
         "CREATE INDEX IF NOT EXISTS idx_municipio ON dados_cnpj(municipio);",
         "CREATE INDEX IF NOT EXISTS idx_razao ON dados_cnpj(razao_social);",
-        "CREATE INDEX IF NOT EXISTS idx_uf_municipio ON dados_cnpj(uf, municipio);",
-        "CREATE INDEX IF NOT EXISTS idx_cnae ON dados_cnpj(cnae_principal_descricao);"
+        "CREATE INDEX IF NOT EXISTS idx_cnae ON dados_cnpj(cnae_principal_descricao);",
+        // ÍNDICES COMPOSTOS ULTRA-RÁPIDOS PARA RANKINGS
+        "CREATE INDEX IF NOT EXISTS idx_ranking_uf ON dados_cnpj(uf, situacao, capital_social DESC);",
+        "CREATE INDEX IF NOT EXISTS idx_ranking_br ON dados_cnpj(situacao, capital_social DESC);",
+        "CREATE INDEX IF NOT EXISTS idx_uf_situacao_municipio ON dados_cnpj(uf, situacao, municipio);"
     ];
 
     foreach ($queries as $sql) {
