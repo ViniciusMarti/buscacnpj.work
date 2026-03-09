@@ -15,6 +15,7 @@ __pycache__/
 database/sources/
 database/csv_final/
 database/*.db
+!database/cnae.db
 database/*.sqlite
 database/*.sql
 get_count*.py

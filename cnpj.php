@@ -6,7 +6,8 @@ $cnpj = preg_replace('/[^0-9]/', '', $_GET['cnpj'] ?? '');
 
 if (strlen($cnpj) !== 14) {
     header("HTTP/1.0 404 Not Found");
-    die("<h1>CNPJ Inválido</h1>");
+    include('404-cnpj.php');
+    die();
 }
 
 try {
@@ -18,7 +19,7 @@ try {
 
     if (!$data) {
         header("HTTP/1.0 404 Not Found");
-        include('404.php');
+        include('404-cnpj.php');
         die();
     }
 } catch (PDOException $e) {
@@ -32,10 +33,40 @@ function format_cnpj($cnpj) {
 function format_money($val) {
     return 'R$ ' . number_format((float)$val, 2, ',', '.');
 }
+function str_limit($str, $limit, $end = '...') {
+    if (strlen($str) <= $limit) return $str;
+    return substr($str, 0, $limit - strlen($end)) . $end;
+}
 
 // Prepara dados para exibição
 $cnpj_f = format_cnpj($data['cnpj']);
 $nome = strtoupper(trim($data['razao_social']));
+
+$tempo_abertura_texto = '—';
+if (!empty($data['data_abertura']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['data_abertura'])) {
+    try {
+        $abertura_dt = new DateTime($data['data_abertura']);
+        $hoje_dt = new DateTime();
+        if ($abertura_dt <= $hoje_dt) {
+            $diff = $hoje_dt->diff($abertura_dt);
+            $partes_tempo = [];
+            if ($diff->y > 0) $partes_tempo[] = $diff->y . ($diff->y == 1 ? ' ano' : ' anos');
+            if ($diff->m > 0) $partes_tempo[] = $diff->m . ($diff->m == 1 ? ' mês' : ' meses');
+            if ($diff->d > 0) $partes_tempo[] = $diff->d . ($diff->d == 1 ? ' dia' : ' dias');
+            
+            if (empty($partes_tempo)) {
+                $tempo_abertura_texto = 'Hoje';
+            } else if (count($partes_tempo) == 1) {
+                $tempo_abertura_texto = $partes_tempo[0];
+            } else {
+                $ultimo = array_pop($partes_tempo);
+                $tempo_abertura_texto = implode(', ', $partes_tempo) . ' e ' . $ultimo;
+            }
+        }
+    } catch (Exception $e) {
+        $tempo_abertura_texto = '—';
+    }
+}
 
 $is_updating = empty($nome);
 if ($is_updating) {
@@ -68,15 +99,111 @@ $meta_title = "$nome - CNPJ $cnpj_f - $situacao";
 if (strlen($meta_title) > 60) {
     // Se o nome for muito longo, tentamos encurtar mantendo o CNPJ e Situação
     $available_space = 60 - strlen(" - CNPJ $cnpj_f - $situacao");
-    $short_nome = mb_strimwidth($nome, 0, $available_space, "...");
+    $short_nome = str_limit($nome, $available_space, "...");
     $meta_title = "$short_nome - CNPJ $cnpj_f - $situacao";
 }
 
 $cidade_uf = ($data['municipio'] && $data['uf']) ? $data['municipio'] . '/' . $data['uf'] : ($data['municipio'] ?: $data['uf'] ?: 'Brasil');
 $meta_description = "Dados completos da $nome (CNPJ $cnpj_f). Confira o endereço em $cidade_uf, situação cadastral $situacao, CNAE, capital social e quadro de sócios.";
 if (strlen($meta_description) > 155) {
-    $meta_description = mb_strimwidth($meta_description, 0, 155, "...");
+    $meta_description = str_limit($meta_description, 155, "...");
 }
+
+// SEO Text & FAQ Generation (Programmatic SEO)
+$data_ab_formatada = (!empty($data['data_abertura']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['data_abertura'])) ? date('d/m/Y', strtotime($data['data_abertura'])) : ($data['data_abertura'] ?: 'N/A');
+$texto_sobre = "A empresa $nome de CNPJ $cnpj_f, foi fundada em $data_ab_formatada na cidade {$data['municipio']} no estado {$data['uf']}. Sua atividade principal, conforme a Receita Federal, é {$data['cnae_principal_descricao']}. Sua situação cadastral até o momento é $situacao.";
+
+$faq_questions = [
+    [
+        "q" => "De quem é o CNPJ $cnpj_f?",
+        "a" => "O CNPJ pertence à empresa $nome."
+    ],
+    [
+        "q" => "Qual o endereço da empresa $nome?",
+        "a" => "A empresa está localizada na {$data['logradouro']}, {$data['numero']} " . ($data['complemento'] ? "({$data['complemento']}), " : "") . "{$data['bairro']}, em {$data['municipio']}/{$data['uf']}."
+    ],
+    [
+        "q" => "Qual a atividade principal de $nome?",
+        "a" => "A atividade principal registrada é {$data['cnae_principal_descricao']} (CNAE {$data['cnae_principal_codigo']})."
+    ],
+    [
+        "q" => "A quanto tempo a empresa $nome está aberta?",
+        "a" => "A empresa está aberta há aproximadamente $tempo_abertura_texto."
+    ],
+    [
+        "q" => "Qual o telefone de $nome?",
+        "a" => "O telefone registrado é " . ($data['telefone'] ?: "não informado") . "."
+    ],
+    [
+        "q" => "Qual o email de $nome?",
+        "a" => "O email de contato é " . (strtolower($data['email']) ?: "não informado") . "."
+    ],
+    [
+        "q" => "Qual a data de abertura de $nome?",
+        "a" => "A empresa foi aberta em $data_ab_formatada."
+    ]
+];
+
+// Lógica de Filiais / Matriz (Internal Link Building)
+$cnpj_base = substr($cnpj, 0, 8);
+$cnpj_ordem = substr($cnpj, 8, 4);
+$is_matriz = ($cnpj_ordem === '0001');
+
+$outras_unidades = [];
+$dados_matriz = null;
+
+try {
+    if ($is_matriz) {
+        // Busca filiais ATIVAS (limitado para performance e UX)
+        $stmt_unidades = $db->prepare("SELECT cnpj, municipio, uf FROM dados_cnpj WHERE cnpj LIKE :base AND cnpj != :atual AND situacao = 'ATIVA' LIMIT 50");
+        $stmt_unidades->execute([':base' => $cnpj_base . '%', ':atual' => $cnpj]);
+        $outras_unidades = $stmt_unidades->fetchAll(PDO::FETCH_ASSOC);
+    } else {
+        // Busca a Matriz
+        $stmt_matriz = $db->prepare("SELECT cnpj, municipio, uf FROM dados_cnpj WHERE cnpj = :matriz_cnpj LIMIT 1");
+        $stmt_matriz->execute([':matriz_cnpj' => $cnpj_base . '0001' . substr($cnpj, 12, 2)]); // Simplificado para bater o dígito se possível ou buscar pela base
+        // Nota: O dígito verificador da matriz pode mudar, o ideal é buscar apenas pelos 8 digitos + 0001
+        $stmt_matriz = $db->prepare("SELECT cnpj, municipio, uf FROM dados_cnpj WHERE cnpj LIKE :matriz_padrao LIMIT 1");
+        $stmt_matriz->execute([':matriz_padrao' => $cnpj_base . '0001%']);
+        $dados_matriz = $stmt_matriz->fetch(PDO::FETCH_ASSOC);
+    }
+} catch (PDOException $e) {
+    // Silencioso
+}
+
+// CNAE Details Lookup - Atualiza a descrição com base no novo banco
+if (isset($data['cnae_principal_codigo']) && !empty($data['cnae_principal_codigo'])) {
+    try {
+        $cnae_db = getCNAEDB();
+        if ($cnae_db !== null) {
+            $cnae_clean = preg_replace('/[^0-9]/', '', $data['cnae_principal_codigo']);
+            $stmt_cnae = $cnae_db->prepare("SELECT Descrição FROM lista_cnae WHERE CNAE = :cnae LIMIT 1");
+            $stmt_cnae->execute([':cnae' => $cnae_clean]);
+            $cnae_info = $stmt_cnae->fetch(PDO::FETCH_ASSOC);
+            if ($cnae_info && !empty($cnae_info['Descrição'])) {
+                $data['cnae_principal_descricao'] = $cnae_info['Descrição'];
+            }
+        }
+    } catch (Exception $e) {
+        // Silencioso
+    }
+}
+
+$faq_schema = [
+    "@context" => "https://schema.org",
+    "@type" => "FAQPage",
+    "mainEntity" => array_map(function($faq) {
+        return [
+            "@type" => "Question",
+            "name" => $faq['q'],
+            "acceptedAnswer" => [
+                "@type" => "Answer",
+                "text" => $faq['a']
+            ]
+        ];
+    }, $faq_questions)
+];
+$faq_schema_json = json_encode($faq_schema, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 
 ?>
 <!DOCTYPE html><html lang="pt-BR">
@@ -97,6 +224,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
     <link rel="stylesheet" href="/assets/cnpj.css?v=<?php echo filemtime(__DIR__ . '/assets/cnpj.css'); ?>">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script type="application/ld+json">{"@context": "https://schema.org", "@type": "Organization", "name": "<?php echo $nome; ?>", "taxID": "<?php echo $cnpj_f; ?>"}</script>
+    <script type="application/ld+json"><?php echo $faq_schema_json; ?></script>
 </head>
 <body>
 <!-- Google Tag Manager (noscript) -->
@@ -121,6 +249,10 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </div>
     </div>
     
+    <div class="info-box" style="margin-bottom:24px;">
+        <p style="font-size: 1.05rem; line-height: 1.6; color: var(--text-color); margin: 0;"><?php echo $texto_sobre; ?></p>
+    </div>
+
     <h2 class="sec-title">Dados de Registro</h2>
     <div class="info-grid">
         <div class="info-box"><div class="data-label">Razão Social</div><p><?php echo $nome; ?></p></div>
@@ -139,6 +271,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 }
             ?>
         </p></div>
+        <div class="info-box"><div class="data-label">Tempo de Abertura</div><p><?php echo $tempo_abertura_texto; ?></p></div>
         <div class="info-box"><div class="data-label">Situação</div><p><?php echo $situacao; ?></p></div>
         <div class="info-box"><div class="data-label">Porte</div><p><?php echo $data['porte'] ?: 'N/A'; ?></p></div>
         <div class="info-box"><div class="data-label">Capital Social</div><p><?php echo format_money($data['capital_social']); ?></p></div>
@@ -222,6 +355,47 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             }
             ?>
         </ul>
+    </div>
+
+    <h2 class="sec-title">Filiais desta empresa</h2>
+    <div class="info-box" style="margin-bottom: 32px;">
+        <?php if (!$is_matriz && $dados_matriz): ?>
+            <!-- Cenário B: Filial visualizando a Matriz -->
+            <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--text-bold);">Sede / Matriz</h3>
+            <p style="margin-bottom: 10px;">Esta empresa é uma <strong>FILIAL</strong>. A sede principal está localizada em:</p>
+            <ul style="list-style:none;">
+                <li>
+                    <strong><?php echo $nome; ?> (MATRIZ)</strong> - <?php echo format_cnpj($dados_matriz['cnpj']); ?> 
+                    <a href="/cnpj/<?php echo $dados_matriz['cnpj']; ?>" style="color:var(--primary); font-weight:600;">(<?php echo $dados_matriz['uf'] . ', ' . $dados_matriz['municipio']; ?>)</a>
+                </li>
+            </ul>
+        <?php elseif ($is_matriz && count($outras_unidades) > 0): ?>
+            <!-- Cenário A: Matriz com Filiais -->
+            <h3 style="font-size: 1.1rem; margin-bottom: 12px; color: var(--text-bold);">Filiais</h3>
+            <p style="margin-bottom: 15px;">Total de <strong><?php echo count($outras_unidades); ?></strong> <?php echo count($outras_unidades) > 1 ? 'filiais ativas' : 'filial ativa'; ?> registradas. (Listagem de unidades com situação cadastral ativa):</p>
+            <ul style="list-style:none; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;">
+                <?php foreach($outras_unidades as $f): ?>
+                <li style="font-size: 0.9rem; padding: 8px; background: rgba(0,0,0,0.02); border-radius: 6px;">
+                    <strong><?php echo str_limit($nome, 25); ?></strong> - <?php echo format_cnpj($f['cnpj']); ?> 
+                    <br>
+                    <a href="/cnpj/<?php echo $f['cnpj']; ?>" style="color:var(--primary); font-weight:600;">(<?php echo $f['uf'] . ', ' . $f['municipio']; ?>)</a>
+                </li>
+                <?php endforeach; ?>
+            </ul>
+        <?php else: ?>
+            <!-- Cenário C: Empresa Única -->
+            <p style="color: var(--text-muted); margin: 0;">A empresa <strong><?php echo $nome; ?></strong> não possui outras filiais ativas registradas no momento ou é uma unidade única.</p>
+        <?php endif; ?>
+    </div>
+
+    <h2 class="sec-title">Perguntas Frequentes (FAQ)</h2>
+    <div class="faq-container" style="display: flex; flex-direction: column; gap: 16px; margin-bottom: 32px;">
+        <?php foreach($faq_questions as $faq): ?>
+        <div class="faq-item info-box" style="margin-bottom: 0;">
+            <h3 style="font-size: 1.05rem; margin-bottom: 8px; color: var(--text-bold); font-weight: 600;"><?php echo $faq['q']; ?></h3>
+            <p style="color: var(--text-color); margin: 0; line-height: 1.5; font-weight: 400;"><?php echo $faq['a']; ?></p>
+        </div>
+        <?php endforeach; ?>
     </div>
 
 </div>

@@ -8,14 +8,20 @@
  * Útil para formatar nomes de cidades e empresas.
  */
 function titleCase($string) {
+    if (empty($string)) return '';
     $small_words = ['de', 'da', 'do', 'das', 'dos', 'e', 'em', 'para'];
-    $words = explode(' ', mb_strtolower($string));
+    
+    // Fallback caso a extensão mbstring do PHP não esteja disponível no Localhost Windows
+    $str_lower = function_exists('mb_strtolower') ? mb_strtolower($string) : strtolower($string);
+    $words = explode(' ', $str_lower);
     
     foreach ($words as $i => $word) {
         if ($i > 0 && in_array($word, $small_words)) {
             continue;
         }
-        $words[$i] = mb_convert_case($word, MB_CASE_TITLE, "UTF-8");
+        $words[$i] = function_exists('mb_convert_case') 
+            ? mb_convert_case($word, MB_CASE_TITLE, "UTF-8") 
+            : ucfirst($word);
     }
     
     return implode(' ', $words);

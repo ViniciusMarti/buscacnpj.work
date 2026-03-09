@@ -61,7 +61,7 @@ try {
     // Concentração
     $stmt_city = $db->prepare("SELECT municipio, COUNT(*) as c FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf GROUP BY municipio ORDER BY c DESC LIMIT 1");
     $stmt_city->execute([':uf' => $uf]);
-    $top_city = $stmt_city->fetch(PDO::FETCH_ASSOC);
+    $top_city = $stmt_city->fetch(PDO::FETCH_ASSOC) ?: ['municipio' => 'Nenhum', 'c' => 0];
     $concentration_perc = ($count_total > 0) ? ($top_city['c'] / $count_total) * 100 : 0;
 
     // Setores Dominantes
@@ -72,6 +72,9 @@ try {
         $stmt_cnae_alt = $db->prepare("SELECT cnae_principal_descricao, COUNT(*) as c FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf GROUP BY cnae_principal_descricao ORDER BY c DESC LIMIT 1");
         $stmt_cnae_alt->execute([':uf' => $uf]);
         $top_cnae = $stmt_cnae_alt->fetch(PDO::FETCH_ASSOC);
+    }
+    if (!$top_cnae) {
+        $top_cnae = ['cnae_principal_descricao' => 'Nenhum', 'c' => 0];
     }
 
     // 2.1 Cidades Principais (Top 10 por volume)
