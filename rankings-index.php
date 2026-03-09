@@ -154,7 +154,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     <?php $r = 1; foreach($top_br as $emp): ?>
                     <tr>
                         <td class="rank">#<?php echo $r++; ?></td>
-                        <td><a href="/cnpj/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a></td>
+                        <td><a href="/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a></td>
                         <td><?php echo $emp['uf']; ?></td>
                         <td style="font-weight:700;"><?php echo format_money($emp['capital_social']); ?></td>
                     </tr>
@@ -169,7 +169,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     
     <div class="grid-states">
         <?php foreach($state_list as $slug => $name): ?>
-        <a href="/rankings/estado/<?php echo $slug; ?>/" class="state-card">
+        <a href="/<?php echo $slug; ?>/" class="state-card">
             <span><?php echo $name; ?></span>
             <span class="arrow">→</span>
         </a>

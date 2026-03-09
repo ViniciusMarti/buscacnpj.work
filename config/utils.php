@@ -58,3 +58,51 @@ function get_estado_prep($uf) {
     return $preps[strtoupper($uf)] ?? 'de';
 }
 
+
+/**
+ * Gera um slug amigável a partir de uma string.
+ */
+function slugify($text) {
+    // Substitui caracteres não alfanuméricos por -
+    $text = preg_replace('~[^\pL\d]+~u', '-', $text);
+    // Transliteração
+    if (function_exists('iconv')) {
+        $text = iconv('utf-8', 'us-ascii//TRANSLIT', $text);
+    }
+    // Remove caracteres indesejados
+    $text = preg_replace('~[^-\w]+~', '', $text);
+    // Trim
+    $text = trim($text, '-');
+    // Remove duplicatas de -
+    $text = preg_replace('~-+~', '-', $text);
+    // Lowercase
+    $text = strtolower($text);
+    if (empty($text)) return 'n-a';
+    return $text;
+}
+
+/**
+ * Retorna os mapeamentos de estados.
+ */
+function get_states_data() {
+    return [
+        'slugs' => [
+            'acre' => 'AC', 'alagoas' => 'AL', 'amapa' => 'AP', 'amazonas' => 'AM', 
+            'bahia' => 'BA', 'ceara' => 'CE', 'distrito-federal' => 'DF', 'espirito-santo' => 'ES', 
+            'goias' => 'GO', 'maranhao' => 'MA', 'mato-grosso' => 'MT', 'mato-grosso-do-sul' => 'MS', 
+            'minas-gerais' => 'MG', 'para' => 'PA', 'paraiba' => 'PB', 'parana' => 'PR', 
+            'pernambuco' => 'PE', 'piaui' => 'PI', 'rio-de-janeiro' => 'RJ', 'rio-grande-do-norte' => 'RN', 
+            'rio-grande-do-sul' => 'RS', 'rondonia' => 'RO', 'roraima' => 'RR', 'santa-catarina' => 'SC', 
+            'sao-paulo' => 'SP', 'sergipe' => 'SE', 'tocantins' => 'TO'
+        ],
+        'names' => [
+            'AC' => 'Acre', 'AL' => 'Alagoas', 'AP' => 'Amapá', 'AM' => 'Amazonas', 
+            'BA' => 'Bahia', 'CE' => 'Ceará', 'DF' => 'Distrito Federal', 'ES' => 'Espírito Santo', 
+            'GO' => 'Goiás', 'MA' => 'Maranhão', 'MT' => 'Mato Grosso', 'MS' => 'Mato Grosso do Sul', 
+            'MG' => 'Minas Gerais', 'PA' => 'Pará', 'PB' => 'Paraíba', 'PR' => 'Paraná', 
+            'PE' => 'Pernambuco', 'PI' => 'Piauí', 'RJ' => 'Rio de Janeiro', 'RN' => 'Rio Grande do Norte', 
+            'RS' => 'Rio Grande do Sul', 'RO' => 'Rondônia', 'RR' => 'Roraima', 'SC' => 'Santa Catarina', 
+            'SP' => 'São Paulo', 'SE' => 'Sergipe', 'TO' => 'Tocantins'
+        ]
+    ];
+}

@@ -9,36 +9,42 @@ if (preg_match('/\.(?:png|jpg|jpeg|gif|css|js|woff2?|ttf|svg|ico)$/', $path)) {
     return false; // serve o arquivo como está
 }
 
-// Roteamento para página de CNPJ (ex: /cnpj/11465216000149)
-if (preg_match('~^/cnpj/([0-9]{14})/?$~', $path, $matches)) {
+// 1. Roteamento para página de CNPJ (ex: /11465216000149)
+if (preg_match('~^/([0-9]{14})/?$~', $path, $matches)) {
     $_GET['cnpj'] = $matches[1];
     include __DIR__ . '/cnpj.php';
     return true;
 }
 
-// Roteamento Rankings Index
-if (preg_match('~^/rankings/?$~', $path)) {
+// 2. Roteamento Rankings Index
+if ($path === '/rankings' || $path === '/rankings/') {
     include __DIR__ . '/rankings-index.php';
     return true;
 }
 
-// Roteamento Ranking Estado
-if (preg_match('~^/rankings/estado/([a-z0-9-]+)/?$~', $path, $matches)) {
-    $_GET['slug'] = $matches[1];
-    if (file_exists(__DIR__ . '/ranking.php')) {
-        include __DIR__ . '/ranking.php';
-    } 
-    return true;
-}
+// 3. Excluir pastas físicas conhecidas para não confundir com estados
+$reserved = ['assets', 'config', 'database', 'scripts', 'sitemaps', 'contato', 'privacidade', 'sobre', 'analises'];
+$first_part = explode('/', ltrim($path, '/'))[0];
 
-// Roteamento Ranking Cidade
-if (preg_match('~^/rankings/estado/([a-z0-9-]+)/([a-z0-9-]+)/?$~', $path, $matches)) {
-    $_GET['estado_slug'] = $matches[1];
-    $_GET['cidade_slug'] = $matches[2];
-    if (file_exists(__DIR__ . '/cidade.php')) {
-        include __DIR__ . '/cidade.php';
+if (!in_array($first_part, $reserved)) {
+    // 4. Ranking Cidade (ex: /amazonas/manaus)
+    if (preg_match('~^/([a-z-]+)/([a-z0-9-]+)/?$~', $path, $matches)) {
+        $_GET['estado_slug'] = $matches[1];
+        $_GET['cidade_slug'] = $matches[2];
+        if (file_exists(__DIR__ . '/cidade.php')) {
+            include __DIR__ . '/cidade.php';
+            return true;
+        }
     }
-    return true;
+
+    // 5. Ranking Estado (ex: /amazonas)
+    if (preg_match('~^/([a-z-]+)/?$~', $path, $matches)) {
+        $_GET['slug'] = $matches[1];
+        if (file_exists(__DIR__ . '/ranking.php')) {
+            include __DIR__ . '/ranking.php';
+            return true;
+        }
+    }
 }
 
 // Fallback index

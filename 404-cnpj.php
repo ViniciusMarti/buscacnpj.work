@@ -147,7 +147,7 @@ function buscar(){
     var input = document.getElementById('q').value;
     var q = input.replace(/\D/g,'');
     if(q.length === 14) {
-        window.location.href = '/cnpj/' + q + '/';
+        window.location.href = '/' + q + '/';
     } else {
         alert('Por favor, digite um CNPJ válido com 14 dígitos.');
     }

@@ -45,7 +45,7 @@ def gerar_sitemap():
     rankings_urls = ["https://buscacnpjgratis.com.br/rankings/"]
     
     for slug, uf in states_dict.items():
-        state_url = f"https://buscacnpjgratis.com.br/rankings/estado/{slug}/"
+        state_url = f"https://buscacnpjgratis.com.br/{slug}/"
         rankings_urls.append(state_url)
         
         # Buscar top 10 cidades
@@ -55,7 +55,7 @@ def gerar_sitemap():
             if city_row[0]:
                 city_slug = slugify(city_row[0])
                 if city_slug:
-                    city_url = f"https://buscacnpjgratis.com.br/rankings/estado/{slug}/{city_slug}/"
+                    city_url = f"https://buscacnpjgratis.com.br/{slug}/{city_slug}/"
                     rankings_urls.append(city_url)
 
     # Salva sitemap-rankings.xml
@@ -88,7 +88,7 @@ def gerar_sitemap():
             f.write('<?xml version="1.0" encoding="UTF-8"?>\n')
             f.write('<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n')
             for cnpj in chunk:
-                f.write(f'  <url><loc>https://buscacnpjgratis.com.br/cnpj/{cnpj}/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>\n')
+                f.write(f'  <url><loc>https://buscacnpjgratis.com.br/{cnpj}/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>\n')
             f.write('</urlset>')
         
         sitemaps.append(filename)

@@ -1,6 +1,7 @@
 <?php
 // Conexão MySQL centralizada
 require_once __DIR__ . '/config/db.php';
+require_once __DIR__ . '/config/utils.php';
 
 $cnpj = preg_replace('/[^0-9]/', '', $_GET['cnpj'] ?? '');
 
@@ -91,6 +92,15 @@ if ($is_updating) {
 } else {
     $situacao = strtoupper($data['situacao'] ?: 'N/A');
 }
+
+// Helpers para Breadcrumb
+$state_data = get_states_data();
+$uf_db = strtoupper($data['uf'] ?? '');
+$state_name_bc = $state_data['names'][$uf_db] ?? 'Brasil';
+$state_slug_bc = array_search($uf_db, $state_data['slugs']) ?: '';
+
+$city_name_bc = titleCase($data['municipio'] ?? '');
+$city_slug_bc = $city_name_bc ? slugify($city_name_bc) : '';
 
 $badge_class = ($situacao === 'ATIVA') ? 'ba' : (($situacao === 'INAPTA' || $situacao === 'BAIXADA') ? 'ro' : 'bo');
 
@@ -234,7 +244,16 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <header><div class="header-inner"><a class="logo" href="/" aria-label="BuscaCNPJ Grátis - Ir para a página inicial">Busca<span>CNPJ</span> Grátis</a><nav><a href="/">Início</a><a href="/rankings/">Rankings</a><a href="/sobre/">Sobre</a></nav></div></header>
 <div class="page-wrap fade-up">
-    <nav aria-label="Breadcrumb" class="bc"><a href="/">Início</a> / <a href="/cnpj/">CNPJ</a> / <?php echo $cnpj_f; ?></nav>
+    <nav aria-label="Breadcrumb" class="bc">
+        <a href="/">Início</a> 
+        <?php if ($state_slug_bc): ?>
+            / <a href="/<?php echo $state_slug_bc; ?>/"><?php echo $state_name_bc; ?></a>
+        <?php endif; ?>
+        <?php if ($city_slug_bc && $state_slug_bc): ?>
+            / <a href="/<?php echo $state_slug_bc; ?>/<?php echo $city_slug_bc; ?>/"><?php echo $city_name_bc; ?></a>
+        <?php endif; ?>
+        / <?php echo $cnpj_f; ?>
+    </nav>
     <div class="company-hero">
         <div class="badge <?php echo $badge_class; ?>"><?php echo $situacao; ?></div>
         <h1 class="company-title"><?php echo $nome; ?></h1>
@@ -366,7 +385,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <ul style="list-style:none;">
                 <li>
                     <strong><?php echo $nome; ?> (MATRIZ)</strong> - <?php echo format_cnpj($dados_matriz['cnpj']); ?> 
-                    <a href="/cnpj/<?php echo $dados_matriz['cnpj']; ?>" style="color:var(--primary); font-weight:600;">(<?php echo $dados_matriz['uf'] . ', ' . $dados_matriz['municipio']; ?>)</a>
+                    <a href="/<?php echo $dados_matriz['cnpj']; ?>/" style="color:var(--primary); font-weight:600;">(<?php echo $dados_matriz['uf'] . ', ' . $dados_matriz['municipio']; ?>)</a>
                 </li>
             </ul>
         <?php elseif ($is_matriz && count($outras_unidades) > 0): ?>
@@ -378,7 +397,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <li style="font-size: 0.9rem; padding: 8px; background: rgba(0,0,0,0.02); border-radius: 6px;">
                     <strong><?php echo str_limit($nome, 25); ?></strong> - <?php echo format_cnpj($f['cnpj']); ?> 
                     <br>
-                    <a href="/cnpj/<?php echo $f['cnpj']; ?>" style="color:var(--primary); font-weight:600;">(<?php echo $f['uf'] . ', ' . $f['municipio']; ?>)</a>
+                    <a href="/<?php echo $f['cnpj']; ?>/" style="color:var(--primary); font-weight:600;">(<?php echo $f['uf'] . ', ' . $f['municipio']; ?>)</a>
                 </li>
                 <?php endforeach; ?>
             </ul>

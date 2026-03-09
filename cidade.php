@@ -168,8 +168,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 <div class="page-wrap fade-up">
     <div class="bc">
         <a href="/">Início</a> > 
-        <a href="/rankings/">Rankings</a> > 
-        <a href="/rankings/estado/<?php echo $estado_slug; ?>/"><?php echo $state_name; ?></a> > 
+        <a href="/<?php echo $estado_slug; ?>/"><?php echo $state_name; ?></a> > 
         <?php echo titleCase($real_city_name); ?>
     </div>
     
@@ -223,7 +222,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <tr>
                     <td class="rank">#<?php echo $rank++; ?></td>
                     <td>
-                        <a href="/cnpj/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a>
+                        <a href="/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a>
                         <span class="cnpj"><?php echo $emp['cnpj']; ?></span>
                     </td>
                     <td><span class="badge <?php echo ($emp['situacao']=='ATIVA'?'ba':'bo'); ?>" style="scale: 0.8; margin-bottom:0;"><?php echo $emp['situacao']; ?></span></td>
@@ -235,7 +234,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
 
     <div style="margin-top: 60px; text-align: center;">
-        <a href="/rankings/estado/<?php echo $estado_slug; ?>/" class="btn-copy" style="padding: 15px 30px;">
+        <a href="/<?php echo $estado_slug; ?>/" class="btn-copy" style="padding: 15px 30px;">
             ← Voltar para Ranking de <?php echo $state_name; ?>
         </a>
     </div>

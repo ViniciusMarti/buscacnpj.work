@@ -182,7 +182,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     <tr>
                         <td class="rank">#<?php echo $r++; ?></td>
                         <td>
-                            <a href="/cnpj/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a>
+                            <a href="/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a>
                             <div style="font-size: 0.8rem; color: var(--text-muted); font-family: monospace; margin-top:4px;"><?php echo $emp['cnpj']; ?></div>
                         </td>
                         <td style="font-size:0.85rem; max-width:250px;"><?php echo mb_strimwidth($emp['cnae_principal_descricao'] ?? '', 0, 45, '...'); ?></td>

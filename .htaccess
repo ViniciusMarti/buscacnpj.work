@@ -28,12 +28,30 @@ RewriteRule ^config/ - [F,L]
 </FilesMatch>
 
 # --- Roteamento Dinâmico para CNPJs ---
-RewriteRule ^cnpj/([0-9]{14})/?$ cnpj.php?cnpj=$1 [L,QSA]
+# Redireciona o antigo /cnpj/1234... para /1234...
+RewriteRule ^cnpj/([0-9]{14})/?$ /$1 [R=301,L]
 
-# --- Roteamento Dinâmico para Rankings ---
+# Servir CNPJ na raiz
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([0-9]{14})/?$ cnpj.php?cnpj=$1 [L,QSA]
+
+# --- Roteamento Dinâmico para Rankings (Novo Modelo) ---
+# Redireciona antigo /rankings/estado/... para root
+RewriteRule ^rankings/estado/([a-z0-9-]+)/?$ /$1/ [R=301,L]
+RewriteRule ^rankings/estado/([a-z0-9-]+)/([a-z0-9-]+)/?$ /$1/$2/ [R=301,L]
+
+# Servir Rankings na raiz
 RewriteRule ^rankings/?$ rankings-index.php [L,QSA]
-RewriteRule ^rankings/estado/([a-z0-9-]+)/?$ ranking.php?slug=$1 [L,QSA]
-RewriteRule ^rankings/estado/([a-z0-9-]+)/([a-z0-9-]+)/?$ cidade.php?estado_slug=$1&cidade_slug=$2 [L,QSA]
+
+# Estado e Cidade (apenas se não for arquivo físico como /sobre/ ou /contato/)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z-]+)/?$ ranking.php?slug=$1 [L,QSA]
+
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^([a-z-]+)/([a-z0-9-]+)/?$ cidade.php?estado_slug=$1&cidade_slug=$2 [L,QSA]
 
 # --- URLs Limpas ---
 # Redireciona de /index.html para /

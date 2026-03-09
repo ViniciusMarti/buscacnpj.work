@@ -252,7 +252,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 </header>
 
 <div class="page-wrap fade-up">
-    <div class="bc"><a href="/">Início</a> > <a href="/rankings/">Rankings</a> > <?php echo $state_name; ?></div>
+    <div class="bc"><a href="/">Início</a> > <?php echo $state_name; ?></div>
     
     <header class="page-header">
         <h1 style="font-size: clamp(2rem, 8vw, 3rem); margin-bottom:10px; line-height: 1.1;">Maiores Empresas em <?php echo $state_name; ?></h1>
@@ -339,7 +339,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <tr>
                     <td class="rank">#<?php echo $rank++; ?></td>
                     <td>
-                        <a href="/cnpj/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a>
+                        <a href="/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a>
                         <span class="cnpj"><?php echo $emp['cnpj']; ?></span>
                     </td>
                     <td><?php echo titleCase($emp['municipio']); ?></td>
@@ -361,7 +361,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             $city_slug = strtolower(str_replace(' ', '-', iconv('UTF-8', 'ASCII//TRANSLIT', $city['municipio'])));
             $city_slug = preg_replace('/[^a-z0-9-]/', '', $city_slug);
         ?>
-        <a href="/rankings/estado/<?php echo $slug; ?>/<?php echo $city_slug; ?>/" class="state-card">
+        <a href="/<?php echo $slug; ?>/<?php echo $city_slug; ?>/" class="state-card">
             <div>
                 <span><?php echo titleCase($city['municipio']); ?></span>
                 <div style="font-size: 0.8rem; opacity: 0.6; font-weight: 500;"><?php echo number_format($city['total'], 0, ',', '.'); ?> empresas</div>
