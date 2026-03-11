@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . '/config/db.php';
 try {
-    $db = getDB();
+    $db = getSpecificConnection('u582732852_buscacnpj1');
     echo "<h1>Database: " . $db->query('SELECT DATABASE()')->fetchColumn() . "</h1>";
     $stmt = $db->query("DESCRIBE dados_cnpj");
     echo "<table border='1'>";

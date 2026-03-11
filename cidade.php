@@ -52,8 +52,8 @@ try {
     if (!$real_city_name) {
         foreach (getAllConnections() as $db_conn) {
             try {
-                $stmt_c = $db_conn->prepare("SELECT DISTINCT municipio FROM dados_cnpj WHERE uf = :uf");
-                $stmt_c->execute([':uf' => $uf]);
+                $stmt_c = $db_conn->prepare("SELECT DISTINCT municipio FROM dados_cnpj WHERE sigla_uf = :sigla_uf");
+                $stmt_c->execute([':sigla_uf' => $uf]);
                 
                 while($row = $stmt_c->fetch(PDO::FETCH_ASSOC)) {
                     $name = $row['municipio'];
@@ -81,8 +81,8 @@ try {
     $stats_cid = aggregateDistributed("
         SELECT COUNT(*) as count_total, SUM(capital_social) as capital_total 
         FROM dados_cnpj 
-        WHERE situacao = 'ATIVA' AND uf = :uf AND municipio = :city
-    ", [':uf' => $uf, ':city' => $real_city_name]);
+        WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :sigla_uf AND municipio = :city
+    ", [':sigla_uf' => $uf, ':city' => $real_city_name]);
 
     $count_total = $stats_cid['count_total'] ?: 0;
     $capital_total = $stats_cid['capital_total'] ?: 0;
@@ -91,8 +91,8 @@ try {
     $cnae_map = [];
     foreach (getAllConnections() as $db) {
         try {
-            $stmt_cnae = $db->prepare("SELECT cnae_principal_descricao, COUNT(*) as c FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf AND municipio = :city AND cnae_principal_descricao NOT LIKE 'Consulte%' GROUP BY cnae_principal_descricao ORDER BY c DESC LIMIT 1");
-            $stmt_cnae->execute([':uf' => $uf, ':city' => $real_city_name]);
+            $stmt_cnae = $db->prepare("SELECT cnae_principal_descricao, COUNT(*) as c FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :sigla_uf AND municipio = :city AND cnae_principal_descricao NOT LIKE 'Consulte%' GROUP BY cnae_principal_descricao ORDER BY c DESC LIMIT 1");
+            $stmt_cnae->execute([':sigla_uf' => $uf, ':city' => $real_city_name]);
             $r = $stmt_cnae->fetch(PDO::FETCH_ASSOC);
             if ($r) $cnae_map[$r['cnae_principal_descricao']] = ($cnae_map[$r['cnae_principal_descricao']] ?? 0) + $r['c'];
         } catch (Exception $e) {
@@ -103,7 +103,7 @@ try {
     $top_cnae = !empty($cnae_map) ? ['cnae_principal_descricao' => key($cnae_map), 'c' => current($cnae_map)] : null;
 
     // 3. Ranking Top 100 da Cidade (Distribuído)
-    $ranking = fetchAllDistributed("SELECT * FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf AND municipio = :city", [':uf' => $uf, ':city' => $real_city_name], 'capital_social', 'DESC', 100);
+    $ranking = fetchAllDistributed("SELECT * FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :sigla_uf AND municipio = :city", [':sigla_uf' => $uf, ':city' => $real_city_name], 'capital_social', 'DESC', 100);
 
 
 } catch (PDOException $e) {
@@ -251,7 +251,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                         <a href="/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a>
                         <span class="cnpj"><?php echo $emp['cnpj']; ?></span>
                     </td>
-                    <td><span class="badge <?php echo ($emp['situacao']=='ATIVA'?'ba':'bo'); ?>" style="scale: 0.8; margin-bottom:0;"><?php echo $emp['situacao']; ?></span></td>
+                    <td><span class="badge <?php echo ($emp['situacao_cadastral']=='ATIVA'?'ba':'bo'); ?>" style="scale: 0.8; margin-bottom:0;"><?php echo $emp['situacao_cadastral']; ?></span></td>
                     <td style="font-weight:700;"><?php echo format_money($emp['capital_social']); ?></td>
                 </tr>
                 <?php endforeach; ?>

@@ -10,26 +10,36 @@ try {
         cnpj TEXT PRIMARY KEY,
         razao_social TEXT,
         nome_fantasia TEXT,
-        situacao TEXT,
+        situacao_cadastral TEXT,
+        data_inicio_atividade TEXT,
+        sigla_uf TEXT,
+        ddd_1 TEXT,
+        telefone_1 TEXT,
+        ddd_2 TEXT,
+        telefone_2 TEXT,
+        email TEXT,
+        capital_social DECIMAL(18,2),
+        cnae_fiscal_principal TEXT,
+        cnae_principal_descricao TEXT,
+        cnae_fiscal_secundaria TEXT,
+        porte TEXT,
+        socios_texto TEXT,
+        natureza_juridica TEXT,
+        opcao_simples TEXT,
+        data_opcao_simples TEXT,
+        opcao_mei TEXT,
+        data_opcao_mei TEXT,
+        id_municipio TEXT,
+        municipio TEXT,
+        bairro TEXT,
         logradouro TEXT,
         numero TEXT,
         complemento TEXT,
-        bairro TEXT,
-        municipio TEXT,
-        uf TEXT,
-        telefone TEXT,
-        email TEXT,
-        capital_social REAL,
-        cnae_principal_codigo TEXT,
-        cnae_principal_descricao TEXT,
-        cnaes_secundarios TEXT,
-        data_abertura TEXT,
-        porte TEXT,
-        quadro_societario TEXT
+        cep TEXT
     )";
     $db->exec($sql);
 
-    $stmt = $db->prepare("INSERT OR REPLACE INTO dados_cnpj (cnpj, razao_social, nome_fantasia, situacao, logradouro, numero, complemento, bairro, municipio, uf, telefone, email, capital_social, cnae_principal_codigo, cnae_principal_descricao, cnaes_secundarios, data_abertura, porte, quadro_societario) VALUES (:cnpj, :razao_social, :nome_fantasia, :situacao, :logradouro, :numero, :complemento, :bairro, :municipio, :uf, :telefone, :email, :capital_social, :cnae_principal_codigo, :cnae_principal_descricao, :cnaes_secundarios, :data_abertura, :porte, :quadro_societario)");
+    $stmt = $db->prepare("INSERT OR REPLACE INTO dados_cnpj (cnpj, razao_social, nome_fantasia, situacao_cadastral, data_inicio_atividade, sigla_uf, ddd_1, telefone_1, email, capital_social, cnae_fiscal_principal, cnae_principal_descricao, cnae_fiscal_secundaria, porte, socios_texto, municipio, bairro, logradouro, numero) VALUES (:cnpj, :razao_social, :nome_fantasia, :situacao, :data_abertura, :uf, :ddd_1, :telefone, :email, :capital_social, :cnae_principal_codigo, :cnae_principal_descricao, :cnaes_secundarios, :porte, :quadro_societario, :municipio, :bairro, :logradouro, :numero)");
     
     // Lista de empresas com vários estados para testar página e rankings
     $empresas = [
@@ -131,21 +141,21 @@ try {
             ':razao_social' => $empresa['razao_social'],
             ':nome_fantasia' => $empresa['nome_fantasia'],
             ':situacao' => $empresa['situacao'],
-            ':logradouro' => $empresa['logradouro'],
-            ':numero' => $empresa['numero'],
-            ':complemento' => $empresa['complemento'],
-            ':bairro' => $empresa['bairro'],
-            ':municipio' => $empresa['municipio'],
+            ':data_abertura' => $empresa['data_abertura'],
             ':uf' => $empresa['uf'],
+            ':ddd_1' => '11',
             ':telefone' => $empresa['telefone'],
             ':email' => $empresa['email'],
             ':capital_social' => $empresa['capital_social'],
             ':cnae_principal_codigo' => $empresa['cnae_principal_codigo'],
             ':cnae_principal_descricao' => $empresa['cnae_principal_descricao'],
             ':cnaes_secundarios' => $empresa['cnaes_secundarios'],
-            ':data_abertura' => $empresa['data_abertura'],
             ':porte' => $empresa['porte'],
-            ':quadro_societario' => $empresa['quadro_societario']
+            ':quadro_societario' => $empresa['quadro_societario'],
+            ':municipio' => $empresa['municipio'],
+            ':bairro' => $empresa['bairro'],
+            ':logradouro' => $empresa['logradouro'],
+            ':numero' => $empresa['numero']
         ]);
     }
 

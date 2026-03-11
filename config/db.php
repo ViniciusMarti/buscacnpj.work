@@ -119,14 +119,14 @@ function queryCNPJ(PDO $db, $clean, $formatted): ?array {
             $is_nf_numeric = is_numeric(preg_replace('/\D/', '', $data['nome_fantasia'] ?? ''));
             
             if ($is_rs_numeric && !$is_nf_numeric && strlen($data['nome_fantasia']) > 10) {
-                $data['cnae_principal_codigo'] = $data['razao_social'];
+                $data['cnae_fiscal_principal'] = $data['razao_social'];
                 $data['razao_social'] = $data['nome_fantasia'];
-                $data['nome_fantasia'] = $data['situacao'];
-                $data['situacao'] = $data['logradouro'];
+                $data['nome_fantasia'] = $data['situacao_cadastral'];
+                $data['situacao_cadastral'] = $data['logradouro'];
             }
             
             if ($is_rs_numeric && $is_nf_numeric && strlen(preg_replace('/\D/', '', $data['razao_social'])) >= 7) {
-                $data['cnae_principal_codigo'] = $data['razao_social'];
+                $data['cnae_fiscal_principal'] = $data['razao_social'];
             }
 
             // Detecção de linha CSV fundida (Endereço na Razão Social)
@@ -137,7 +137,7 @@ function queryCNPJ(PDO $db, $clean, $formatted): ?array {
                     $data['bairro'] = $data['bairro'] ?: trim($parts[1]);
                     $data['cep'] = $data['cep'] ?: trim($parts[2]);
                     $data['municipio'] = $data['municipio'] ?: trim($parts[3]);
-                    $data['uf'] = $data['uf'] ?: trim($parts[4]);
+                    $data['sigla_uf'] = $data['sigla_uf'] ?: trim($parts[4]);
                     $data['razao_social'] = (!empty($data['nome_fantasia']) && !is_numeric($data['nome_fantasia'])) 
                                             ? $data['nome_fantasia'] : 'EMPRESA REGISTRADA (' . $data['cnpj'] . ')';
                 }

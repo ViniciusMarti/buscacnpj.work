@@ -32,7 +32,7 @@ foreach ($states as $slug => $uf) {
                 COUNT(*) as total_count, 
                 SUM(capital_social) as total_capital
             FROM dados_cnpj 
-            WHERE situacao = 'ATIVA' AND uf = :uf
+            WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :uf
         ", [':uf' => $uf]);
 
         $count_total = $main_data['total_count'] ?: 0;
@@ -42,7 +42,7 @@ foreach ($states as $slug => $uf) {
         $city_map = [];
         foreach (getAllConnections() as $db_conn) {
             try {
-                $stmt = $db_conn->prepare("SELECT municipio, COUNT(*) as total FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf GROUP BY municipio ORDER BY total DESC LIMIT 10");
+                $stmt = $db_conn->prepare("SELECT municipio, COUNT(*) as total FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :uf GROUP BY municipio ORDER BY total DESC LIMIT 10");
                 $stmt->execute([':uf' => $uf]);
                 foreach ($stmt->fetchAll() as $r) {
                     $city_map[$r['municipio']] = ($city_map[$r['municipio']] ?? 0) + $r['total'];
@@ -64,7 +64,7 @@ foreach ($states as $slug => $uf) {
         $cnae_map = [];
         foreach (getAllConnections() as $db_conn) {
             try {
-                $stmt = $db_conn->prepare("SELECT cnae_principal_descricao as cnae, COUNT(*) as c FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf AND cnae_principal_descricao NOT LIKE 'Consulte%' GROUP BY cnae_principal_descricao ORDER BY c DESC LIMIT 1");
+                $stmt = $db_conn->prepare("SELECT cnae_principal_descricao as cnae, COUNT(*) as c FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :uf AND cnae_principal_descricao NOT LIKE 'Consulte%' GROUP BY cnae_principal_descricao ORDER BY c DESC LIMIT 1");
                 $stmt->execute([':uf' => $uf]);
                 $r = $stmt->fetch();
                 if ($r) $cnae_map[$r['cnae']] = ($cnae_map[$r['cnae']] ?? 0) + $r['c'];
@@ -104,7 +104,7 @@ echo "Processando Ranking Nacional (Brasil)... ";
 try {
     $start_br = microtime(true);
     // Busca as 10 maiores do Brasil em todos os bancos
-    $top_br = fetchAllDistributed("SELECT * FROM dados_cnpj WHERE situacao = 'ATIVA' AND capital_social > 0", [], 'capital_social', 'DESC', 10);
+    $top_br = fetchAllDistributed("SELECT * FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA' AND capital_social > 0", [], 'capital_social', 'DESC', 10);
 
     
     $cache_file_br = $cache_dir . '/stats_brazil.json';

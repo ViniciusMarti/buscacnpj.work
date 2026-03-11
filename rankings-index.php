@@ -23,7 +23,7 @@ try {
 
     if (!$top_br) {
         // Pegar top 10 maiores empresas do Brasil (Geral) - Busca Distribuída
-        $top_br = fetchAllDistributed("SELECT * FROM dados_cnpj WHERE situacao = 'ATIVA' AND capital_social > 0", [], 'capital_social', 'DESC', 10);
+        $top_br = fetchAllDistributed("SELECT * FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA' AND capital_social > 0", [], 'capital_social', 'DESC', 10);
         file_put_contents($cache_file, json_encode($top_br));
     }
 
@@ -33,7 +33,7 @@ try {
     if (file_exists($cache_stats_file) && (time() - filemtime($cache_stats_file) < $cache_time)) {
         $br_stats = json_decode(file_get_contents($cache_stats_file), true);
     } else {
-        $br_stats = aggregateDistributed("SELECT COUNT(*) as t, SUM(capital_social) as s FROM dados_cnpj WHERE situacao = 'ATIVA'", []);
+        $br_stats = aggregateDistributed("SELECT COUNT(*) as t, SUM(capital_social) as s FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA'", []);
         file_put_contents($cache_stats_file, json_encode($br_stats));
     }
 
@@ -160,7 +160,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                     <tr>
                         <td class="rank">#<?php echo $r++; ?></td>
                         <td><a href="/<?php echo $emp['cnpj']; ?>/" class="name"><?php echo $emp['razao_social']; ?></a></td>
-                        <td><?php echo $emp['uf']; ?></td>
+                        <td><?php echo $emp['sigla_uf']; ?></td>
                         <td style="font-weight:700;"><?php echo format_money($emp['capital_social']); ?></td>
                     </tr>
                     <?php endforeach; ?>

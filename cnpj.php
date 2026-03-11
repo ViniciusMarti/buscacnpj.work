@@ -41,9 +41,9 @@ $cnpj_f = format_cnpj($data['cnpj']);
 $nome = strtoupper(trim($data['razao_social']));
 
 $tempo_abertura_texto = '—';
-if (!empty($data['data_abertura']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['data_abertura'])) {
+if (!empty($data['data_inicio_atividade']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['data_inicio_atividade'])) {
     try {
-        $abertura_dt = new DateTime($data['data_abertura']);
+        $abertura_dt = new DateTime($data['data_inicio_atividade']);
         $hoje_dt = new DateTime();
         if ($abertura_dt <= $hoje_dt) {
             $diff = $hoje_dt->diff($abertura_dt);
@@ -76,23 +76,23 @@ if ($is_updating) {
     $data['complemento'] = "";
     $data['bairro'] = "—";
     $data['municipio'] = "Aguardando";
-    $data['uf'] = "--";
-    $data['telefone'] = "—";
+    $data['sigla_uf'] = "--";
+    $data['telefone_1'] = "—";
     $data['email'] = "—";
     $data['cnae_principal_descricao'] = "Sincronização em andamento";
-    $data['cnae_principal_codigo'] = "Aguarde";
+    $data['cnae_fiscal_principal'] = "Aguarde";
     $data['capital_social'] = 0;
     $data['porte'] = "—";
-    $data['data_abertura'] = '';
-    $data['cnaes_secundarios'] = '';
-    $data['quadro_societario'] = 'Informação não disponível no momento';
+    $data['data_inicio_atividade'] = '';
+    $data['cnae_fiscal_secundária'] = '';
+    $data['socios_texto'] = 'Informação não disponível no momento';
 } else {
-    $situacao = strtoupper($data['situacao'] ?: 'N/A');
+    $situacao = strtoupper($data['situacao_cadastral'] ?: 'N/A');
 }
 
 // Helpers para Breadcrumb
 $state_data = get_states_data();
-$uf_db = strtoupper($data['uf'] ?? '');
+$uf_db = strtoupper($data['sigla_uf'] ?? '');
 $state_name_bc = $state_data['names'][$uf_db] ?? 'Brasil';
 $state_slug_bc = array_search($uf_db, $state_data['slugs']) ?: '';
 
@@ -110,15 +110,15 @@ if (strlen($meta_title) > 60) {
     $meta_title = "$short_nome - CNPJ $cnpj_f - $situacao";
 }
 
-$cidade_uf = ($data['municipio'] && $data['uf']) ? $data['municipio'] . '/' . $data['uf'] : ($data['municipio'] ?: $data['uf'] ?: 'Brasil');
+$cidade_uf = ($data['municipio'] && $data['sigla_uf']) ? $data['municipio'] . '/' . $data['sigla_uf'] : ($data['municipio'] ?: $data['sigla_uf'] ?: 'Brasil');
 $meta_description = "Dados completos da $nome (CNPJ $cnpj_f). Confira o endereço em $cidade_uf, situação cadastral $situacao, CNAE, capital social e quadro de sócios.";
 if (strlen($meta_description) > 155) {
     $meta_description = str_limit($meta_description, 155, "...");
 }
 
 // SEO Text & FAQ Generation (Programmatic SEO)
-$data_ab_formatada = (!empty($data['data_abertura']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['data_abertura'])) ? date('d/m/Y', strtotime($data['data_abertura'])) : ($data['data_abertura'] ?: 'N/A');
-$texto_sobre = "A empresa $nome de CNPJ $cnpj_f, foi fundada em $data_ab_formatada na cidade {$data['municipio']} no estado {$data['uf']}. Sua atividade principal, conforme a Receita Federal, é {$data['cnae_principal_descricao']}. Sua situação cadastral até o momento é $situacao.";
+$data_ab_formatada = (!empty($data['data_inicio_atividade']) && preg_match('/^\d{4}-\d{2}-\d{2}$/', $data['data_inicio_atividade'])) ? date('d/m/Y', strtotime($data['data_inicio_atividade'])) : ($data['data_inicio_atividade'] ?: 'N/A');
+$texto_sobre = "A empresa $nome de CNPJ $cnpj_f, foi fundada em $data_ab_formatada na cidade {$data['municipio']} no estado {$data['sigla_uf']}. Sua atividade principal, conforme a Receita Federal, é {$data['cnae_principal_descricao']}. Sua situação cadastral até o momento é $situacao.";
 
 $faq_questions = [
     [
@@ -127,11 +127,11 @@ $faq_questions = [
     ],
     [
         "q" => "Qual o endereço da empresa $nome?",
-        "a" => "A empresa está localizada na {$data['logradouro']}, {$data['numero']} " . ($data['complemento'] ? "({$data['complemento']}), " : "") . "{$data['bairro']}, em {$data['municipio']}/{$data['uf']}."
+        "a" => "A empresa está localizada na {$data['logradouro']}, {$data['numero']} " . ($data['complemento'] ? "({$data['complemento']}), " : "") . "{$data['bairro']}, em {$data['municipio']}/{$data['sigla_uf']}."
     ],
     [
         "q" => "Qual a atividade principal de $nome?",
-        "a" => "A atividade principal registrada é {$data['cnae_principal_descricao']} (CNAE {$data['cnae_principal_codigo']})."
+        "a" => "A atividade principal registrada é {$data['cnae_principal_descricao']} (CNAE {$data['cnae_fiscal_principal']})."
     ],
     [
         "q" => "A quanto tempo a empresa $nome está aberta?",
@@ -139,7 +139,7 @@ $faq_questions = [
     ],
     [
         "q" => "Qual o telefone de $nome?",
-        "a" => "O telefone registrado é " . ($data['telefone'] ?: "não informado") . "."
+        "a" => "O telefone registrado é " . ($data['telefone_1'] ?: "não informado") . "."
     ],
     [
         "q" => "Qual o email de $nome?",
@@ -164,7 +164,7 @@ try {
     if ($is_matriz) {
         // Busca filiais ATIVAS (limitado para performance e UX)
         foreach ($connections as $db) {
-            $stmt_unidades = $db->prepare("SELECT cnpj, municipio, uf FROM dados_cnpj WHERE cnpj LIKE :base AND cnpj != :atual AND situacao = 'ATIVA' LIMIT 50");
+            $stmt_unidades = $db->prepare("SELECT cnpj, municipio, sigla_uf FROM dados_cnpj WHERE cnpj LIKE :base AND cnpj != :atual AND situacao_cadastral = 'ATIVA' LIMIT 50");
             $stmt_unidades->execute([':base' => $cnpj_base . '%', ':atual' => $cnpj]);
             $res = $stmt_unidades->fetchAll(PDO::FETCH_ASSOC);
             if ($res) {
@@ -178,7 +178,7 @@ try {
     } else {
         // Busca a Matriz
         foreach ($connections as $db) {
-            $stmt_matriz = $db->prepare("SELECT cnpj, municipio, uf FROM dados_cnpj WHERE cnpj LIKE :matriz_padrao LIMIT 1");
+            $stmt_matriz = $db->prepare("SELECT cnpj, municipio, sigla_uf FROM dados_cnpj WHERE cnpj LIKE :matriz_padrao LIMIT 1");
             $stmt_matriz->execute([':matriz_padrao' => $cnpj_base . '0001%']);
             $dados_matriz = $stmt_matriz->fetch(PDO::FETCH_ASSOC);
             if ($dados_matriz) break;
@@ -190,11 +190,11 @@ try {
 
 
 // CNAE Details Lookup - Atualiza a descrição com base no novo banco
-if (isset($data['cnae_principal_codigo']) && !empty($data['cnae_principal_codigo'])) {
+if (isset($data['cnae_fiscal_principal']) && !empty($data['cnae_fiscal_principal'])) {
     try {
         $cnae_db = getCNAEDB();
         if ($cnae_db !== null) {
-            $cnae_clean = preg_replace('/[^0-9]/', '', $data['cnae_principal_codigo']);
+            $cnae_clean = preg_replace('/[^0-9]/', '', $data['cnae_fiscal_principal']);
             $stmt_cnae = $cnae_db->prepare("SELECT Descrição FROM lista_cnae WHERE CNAE = :cnae LIMIT 1");
             $stmt_cnae->execute([':cnae' => $cnae_clean]);
             $cnae_info = $stmt_cnae->fetch(PDO::FETCH_ASSOC);
@@ -300,6 +300,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
         </p></div>
         <div class="info-box"><div class="data-label">Tempo de Abertura</div><p><?php echo $tempo_abertura_texto; ?></p></div>
         <div class="info-box"><div class="data-label">Situação</div><p><?php echo $situacao; ?></p></div>
+        <div class="info-box"><div class="data-label">Natureza Jurídica</div><p><?php echo $data['natureza_juridica'] ?: '—'; ?></p></div>
         <div class="info-box"><div class="data-label">Porte</div><p><?php echo $data['porte'] ?: 'N/A'; ?></p></div>
         <div class="info-box"><div class="data-label">Capital Social</div><p><?php echo format_money($data['capital_social']); ?></p></div>
     </div>
@@ -330,21 +331,38 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="info-grid">
         <div class="info-box" style="grid-column: span 2;"><div class="data-label">Endereço</div><p><?php echo $data['logradouro'] . ', ' . $data['numero'] . ($data['complemento'] ? ' - ' . $data['complemento'] : ''); ?></p></div>
         <div class="info-box"><div class="data-label">Bairro</div><p><?php echo $data['bairro'] ?: '—'; ?></p></div>
-        <div class="info-box"><div class="data-label">Cidade/UF</div><p><?php echo $data['municipio'] . ' — ' . $data['uf']; ?></p></div>
-        <div class="info-box"><div class="data-label">Telefone</div><p><?php echo $data['telefone'] ?: '—'; ?></p></div>
+        <div class="info-box"><div class="data-label">Cidade/UF</div><p><?php echo $data['municipio'] . ' — ' . $data['sigla_uf']; ?> <?php echo $data['id_municipio'] ? '<span style="font-size:0.7rem; color:var(--text-muted);">('.$data['id_municipio'].')</span>' : ''; ?></p></div>
+        <div class="info-box"><div class="data-label">Telefone</div><p><?php 
+            $tel1 = ($data['ddd_1'] ? "({$data['ddd_1']}) " : "") . $data['telefone_1'];
+            $tel2 = ($data['ddd_2'] ? "({$data['ddd_2']}) " : "") . $data['telefone_2'];
+            echo $tel1 ?: '—'; 
+            if ($tel2) echo " / " . $tel2;
+        ?></p></div>
         <div class="info-box"><div class="data-label">Email</div><p><?php echo strtolower($data['email']) ?: '—'; ?></p></div>
+    </div>
+
+    <h2 class="sec-title">Opções Tributárias</h2>
+    <div class="info-grid" style="margin-bottom:24px;">
+        <div class="info-box">
+            <div class="data-label">Optante pelo Simples</div>
+            <p><?php echo ($data['opcao_simples'] == '1') ? 'SIM (Desde ' . date('d/m/Y', strtotime($data['data_opcao_simples'])) . ')' : 'NÃO'; ?></p>
+        </div>
+        <div class="info-box">
+            <div class="data-label">Optante pelo MEI</div>
+            <p><?php echo ($data['opcao_mei'] == '1') ? 'SIM (Desde ' . date('d/m/Y', strtotime($data['data_opcao_mei'])) . ')' : 'NÃO'; ?></p>
+        </div>
     </div>
 
     <h2 class="sec-title">Atividades Econômicas</h2>
     <div class="info-box" style="margin-bottom:24px;">
         <div class="data-label">Atividade Principal</div>
-        <p><?php echo $data['cnae_principal_descricao'] . ' (CNAE ' . $data['cnae_principal_codigo'] . ')'; ?></p>
+        <p><?php echo $data['cnae_principal_descricao'] . ' (CNAE ' . $data['cnae_fiscal_principal'] . ')'; ?></p>
     </div>
     <div class="info-box">
         <div class="data-label">Atividades Secundárias</div>
         <ul style="list-style:none; padding-top:10px;">
             <?php 
-            $sec_str = trim($data['cnaes_secundarios']);
+            $sec_str = trim($data['cnae_fiscal_secundaria']);
             if(!$sec_str) {
                 echo "<li>—</li>";
             } else {
@@ -363,7 +381,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     <div class="info-box">
         <ul style="list-style:none; padding-top:10px;">
             <?php 
-            $socios_str = trim($data['quadro_societario']);
+            $socios_str = trim($data['socios_texto']);
             if(!$socios_str || $socios_str == 'Informação não disponível') {
                 echo "<li>Informação não disponível</li>";
             } else {
@@ -405,7 +423,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                 <li style="font-size: 0.9rem; padding: 8px; background: rgba(0,0,0,0.02); border-radius: 6px;">
                     <strong><?php echo str_limit($nome, 25); ?></strong> - <?php echo format_cnpj($f['cnpj']); ?> 
                     <br>
-                    <a href="/<?php echo $f['cnpj']; ?>/" style="color:var(--primary); font-weight:600;">(<?php echo $f['uf'] . ', ' . $f['municipio']; ?>)</a>
+                    <a href="/<?php echo $f['cnpj']; ?>/" style="color:var(--primary); font-weight:600;">(<?php echo $f['sigla_uf'] . ', ' . $f['municipio']; ?>)</a>
                 </li>
                 <?php endforeach; ?>
             </ul>

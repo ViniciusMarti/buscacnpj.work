@@ -65,7 +65,7 @@ try {
                 COUNT(*) as total_count, 
                 SUM(capital_social) as total_capital
             FROM dados_cnpj 
-            WHERE situacao = 'ATIVA' AND uf = :uf
+            WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :uf
         ", [':uf' => $uf]);
 
         $count_total = $main_data['total_count'] ?: 0;
@@ -77,7 +77,7 @@ try {
         $city_map = [];
         foreach (getAllConnections() as $db) {
             try {
-                $stmt = $db->prepare("SELECT municipio, COUNT(*) as total FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf GROUP BY municipio ORDER BY total DESC LIMIT 10");
+                $stmt = $db->prepare("SELECT municipio, COUNT(*) as total FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :uf GROUP BY municipio ORDER BY total DESC LIMIT 10");
                 $stmt->execute([':uf' => $uf]);
                 foreach ($stmt->fetchAll() as $r) {
                     $city_map[$r['municipio']] = ($city_map[$r['municipio']] ?? 0) + $r['total'];
@@ -100,7 +100,7 @@ try {
         $cnae_map = [];
         foreach (getAllConnections() as $db) {
             try {
-                $stmt = $db->prepare("SELECT cnae_principal_descricao as cnae, COUNT(*) as c FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf AND cnae_principal_descricao NOT LIKE 'Consulte%' GROUP BY cnae_principal_descricao ORDER BY c DESC LIMIT 1");
+                $stmt = $db->prepare("SELECT cnae_principal_descricao as cnae, COUNT(*) as c FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :uf AND cnae_principal_descricao NOT LIKE 'Consulte%' GROUP BY cnae_principal_descricao ORDER BY c DESC LIMIT 1");
                 $stmt->execute([':uf' => $uf]);
                 $r = $stmt->fetch();
                 if ($r) $cnae_map[$r['cnae']] = ($cnae_map[$r['cnae']] ?? 0) + $r['c'];
@@ -142,7 +142,7 @@ try {
     $participation = ($br_total > 0) ? ($count_total / $br_total) * 100 : 0;
 
     // --- LISTAGEM DO RANKING (FILTRADA E DISTRIBUÍDA) ---
-    $query = "SELECT * FROM dados_cnpj WHERE situacao = 'ATIVA' AND uf = :uf";
+    $query = "SELECT * FROM dados_cnpj WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :uf";
     $params = [':uf' => $uf];
 
     if ($search) {
@@ -356,7 +356,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                         <span class="cnpj"><?php echo $emp['cnpj']; ?></span>
                     </td>
                     <td><?php echo titleCase($emp['municipio']); ?></td>
-                    <td><span class="badge <?php echo ($emp['situacao']=='ATIVA'?'ba':'bo'); ?>" style="scale: 0.8; margin-bottom:0;"><?php echo $emp['situacao']; ?></span></td>
+                    <td><span class="badge <?php echo ($emp['situacao_cadastral']=='ATIVA'?'ba':'bo'); ?>" style="scale: 0.8; margin-bottom:0;"><?php echo $emp['situacao_cadastral']; ?></span></td>
                     <td style="font-weight:700;"><?php echo format_money($emp['capital_social']); ?></td>
                 </tr>
                 <?php endforeach; ?>
