@@ -10,23 +10,23 @@ try {
         cnpj TEXT PRIMARY KEY,
         razao_social TEXT,
         nome_fantasia TEXT,
-        situacao TEXT,
-        data_abertura TEXT,
+        situacao_cadastral TEXT,
+        data_inicio_atividade TEXT,
         porte TEXT,
-        capital_social REAL,
+        capital_social DECIMAL(18,2),
         logradouro TEXT,
         numero TEXT,
         complemento TEXT,
         bairro TEXT,
         cep TEXT,
         municipio TEXT,
-        uf TEXT,
+        sigla_uf TEXT,
         email TEXT,
-        telefone TEXT,
-        cnae_principal_codigo TEXT,
+        telefone_1 TEXT,
+        cnae_fiscal_principal TEXT,
         cnae_principal_descricao TEXT,
-        cnaes_secundarios TEXT,
-        quadro_societario TEXT
+        cnae_fiscal_secundaria TEXT,
+        socios_texto TEXT
     )";
     $db->exec($sql);
 
@@ -35,7 +35,7 @@ try {
     $db->exec("PRAGMA journal_mode = MEMORY");
 
     // Prepara a query
-    $stmt = $db->prepare("INSERT OR REPLACE INTO dados_cnpj (cnpj, razao_social, nome_fantasia, situacao, data_abertura, porte, capital_social, logradouro, numero, complemento, bairro, cep, municipio, uf, email, telefone, cnae_principal_codigo, cnae_principal_descricao, cnaes_secundarios, quadro_societario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt = $db->prepare("INSERT OR REPLACE INTO dados_cnpj (cnpj, razao_social, nome_fantasia, situacao_cadastral, data_inicio_atividade, porte, capital_social, logradouro, numero, complemento, bairro, cep, municipio, sigla_uf, email, telefone_1, cnae_fiscal_principal, cnae_principal_descricao, cnae_fiscal_secundaria, socios_texto) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     $dir = __DIR__ . '/database/csv_final';
     $arquivos = glob("$dir/*.csv");
@@ -78,7 +78,7 @@ try {
     
     // Cria índices cruciais para a página do Ranking funcionar perfeitamente
     echo "Criando indices para acelerar o banco local...\n";
-    $db->exec("CREATE INDEX IF NOT EXISTS idx_uf_situacao ON dados_cnpj(uf, situacao)");
+    $db->exec("CREATE INDEX IF NOT EXISTS idx_uf_situacao ON dados_cnpj(sigla_uf, situacao_cadastral)");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_municipio ON dados_cnpj(municipio)");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_cnae ON dados_cnpj(cnae_principal_descricao)");
     $db->exec("CREATE INDEX IF NOT EXISTS idx_capital_soc ON dados_cnpj(capital_social)");

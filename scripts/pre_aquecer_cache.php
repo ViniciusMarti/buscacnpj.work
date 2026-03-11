@@ -25,10 +25,10 @@ try {
         
         // Busca as cidades com mais empresas ativas (as mais prováveis de serem acessadas)
         $stmt = $db->query("
-            SELECT uf, municipio, COUNT(*) as total 
+            SELECT sigla_uf as uf, municipio, COUNT(*) as total 
             FROM dados_cnpj 
-            WHERE situacao = 'ATIVA' 
-            GROUP BY uf, municipio 
+            WHERE situacao_cadastral = 'ATIVA' 
+            GROUP BY sigla_uf, municipio 
             HAVING total > 100
             ORDER BY total DESC 
             LIMIT 500

@@ -20,20 +20,20 @@ try {
         $queries = [
             // Conversão de tipos para garantir performance
             "ALTER TABLE dados_cnpj MODIFY COLUMN cnpj VARCHAR(14)",
-            "ALTER TABLE dados_cnpj MODIFY COLUMN uf CHAR(2)",
-            "ALTER TABLE dados_cnpj MODIFY COLUMN situacao VARCHAR(20)",
+            "ALTER TABLE dados_cnpj MODIFY COLUMN sigla_uf CHAR(2)",
+            "ALTER TABLE dados_cnpj MODIFY COLUMN situacao_cadastral VARCHAR(20)",
             "ALTER TABLE dados_cnpj MODIFY COLUMN capital_social DECIMAL(18,2)",
             
             // Índices básicos
             "CREATE INDEX idx_cnpj ON dados_cnpj(cnpj)",
-            "CREATE INDEX idx_uf ON dados_cnpj(uf)",
+            "CREATE INDEX idx_uf ON dados_cnpj(sigla_uf)",
             "CREATE INDEX idx_municipio ON dados_cnpj(municipio)",
             "CREATE INDEX idx_capital ON dados_cnpj(capital_social)",
-            "CREATE INDEX idx_situacao ON dados_cnpj(situacao)",
+            "CREATE INDEX idx_situacao ON dados_cnpj(situacao_cadastral)",
             
             // Índices compostos para rankings
-            "CREATE INDEX idx_ranking_uf ON dados_cnpj(uf, situacao, capital_social)",
-            "CREATE INDEX idx_ranking_br ON dados_cnpj(situacao, capital_social)"
+            "CREATE INDEX idx_ranking_uf ON dados_cnpj(sigla_uf, situacao_cadastral, capital_social)",
+            "CREATE INDEX idx_ranking_br ON dados_cnpj(situacao_cadastral, capital_social)"
         ];
 
         foreach ($queries as $sql) {
