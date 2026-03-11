@@ -7,20 +7,18 @@ $description = "Descubra quais são as 20 maiores e mais ricas empresas do Brasi
 $canonical = "https://buscacnpjgratis.com.br/analises/maiores-empresas-do-brasil/";
 
 try {
-    $db = getDB();
-    
-    // As 20 Maiores
-    $stmt = $db->query("SELECT * FROM dados_cnpj WHERE situacao = 'ATIVA' AND capital_social > 0 ORDER BY capital_social DESC LIMIT 20");
-    $top20 = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // As 20 Maiores - Busca Distribuída
+    $top20 = fetchAllDistributed("SELECT * FROM dados_cnpj WHERE situacao = 'ATIVA' AND capital_social > 0", [], 'capital_social', 'DESC', 20);
 
-    // Empresas que valem mais que 1 bilhão (count approximate)
-    $stmt_bilhao = $db->query("SELECT COUNT(*) as c FROM dados_cnpj WHERE capital_social >= 1000000000");
-    $count_bilhao = $stmt_bilhao->fetchColumn();
+    // Empresas que valem mais que 1 bilhão (count approximate) - Agregação Distribuída
+    $stats_bilhao = aggregateDistributed("SELECT COUNT(*) as c FROM dados_cnpj WHERE capital_social >= 1000000000", []);
+    $count_bilhao = $stats_bilhao['c'] ?? 'Várias';
     
     // Top 5 separadas
     $top5 = array_slice($top20, 0, 5);
 
 } catch (Exception $e) {
+    error_log("Erro na análise distribuída: " . $e->getMessage());
     $top20 = [];
     $count_bilhao = 'Várias';
     $top5 = [];
