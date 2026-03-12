@@ -78,6 +78,61 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
             font-weight: 500;
             margin-top: 5px;
         }
+
+        /* Quick Search Logos */
+        .quick-search {
+            margin-top: 60px;
+            width: 100%;
+            max-width: 1100px;
+            text-align: center;
+            padding: 0 20px;
+        }
+        .quick-search h2 {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.25em;
+            color: var(--text-muted);
+            margin-bottom: 30px;
+            font-weight: 800;
+            opacity: 0.6;
+        }
+        .logos-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px 40px;
+            align-items: center;
+        }
+        .logos-grid a {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            filter: grayscale(100%) opacity(0.4);
+            padding: 12px 20px;
+            border-radius: 20px;
+            border: 1px solid transparent;
+        }
+        .logos-grid a:hover {
+            filter: grayscale(0%) opacity(1);
+            transform: translateY(-5px) scale(1.1);
+            background: var(--surface);
+            border-color: var(--border);
+            box-shadow: var(--shadow-md);
+        }
+        .logos-grid img {
+            height: 30px;
+            width: auto;
+            max-width: 130px;
+            object-fit: contain;
+        }
+
+        @media (max-width: 768px) {
+            .quick-search { margin-top: 40px; }
+            .logos-grid { gap: 15px 25px; }
+            .logos-grid img { height: 24px; }
+            .logos-grid a { padding: 8px 12px; }
+        }
     </style>
 </head>
 <body class="home-page-body">
@@ -107,6 +162,23 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <input id="q" type="text" maxlength="18" placeholder="Digite o CNPJ (apenas números)..." 
                    onkeydown="if(event.key==='Enter')buscar()" aria-label="Digite o CNPJ para consulta" autofocus>
             <button onclick="buscar()"><i class="fa-solid fa-magnifying-glass mr-2"></i> Consultar</button>
+        </div>
+
+        <div class="quick-search fade-up" style="animation-delay: 0.15s;">
+            <h2>Busca Rápida</h2>
+            <div class="logos-grid">
+                <a href="/02261666000150/" title="Consulte CNPJ da Ambev"><img src="/assets/images/ambev_logo.png" alt="Ambev"></a>
+                <a href="/00000000000191/" title="Consulte CNPJ do Banco do Brasil"><img src="/assets/images/banco-do-brasil_logo.png" alt="Banco do Brasil"></a>
+                <a href="/60746948000112/" title="Consulte CNPJ do Bradesco"><img src="/assets/images/bradesco_logo.png" alt="Bradesco"></a>
+                <a href="/60872504000123/" title="Consulte CNPJ do Itaú Unibanco"><img src="/assets/images/itau-unibanco_logo.png" alt="Itaú"></a>
+                <a href="/33000167000101/" title="Consulte CNPJ da Petrobras"><img src="/assets/images/petrobras_logo.png" alt="Petrobras"></a>
+                <a href="/33592510000154/" title="Consulte CNPJ da Vale"><img src="/assets/images/vale_logo.png" alt="Vale"></a>
+                <a href="/18236120000158/" title="Consulte CNPJ do Nubank"><img src="/assets/images/nubank_logo.png" alt="Nubank"></a>
+                <a href="/47960950000121/" title="Consulte CNPJ do Magazine Luiza"><img src="/assets/images/magazine-luiza_logo.png" alt="Magazine Luiza"></a>
+                <a href="/07689002000189/" title="Consulte CNPJ da Embraer"><img src="/assets/images/embraer_logo.png" alt="Embraer"></a>
+                <a href="/02916265000141/" title="Consulte CNPJ da JBS"><img src="/assets/images/jbs_logo.png" alt="JBS"></a>
+                <a href="/38928424000100/" title="Consulte CNPJ da Cambly"><img src="/assets/images/cambly-logo.png" alt="Cambly"></a>
+            </div>
         </div>
     </div>
 
