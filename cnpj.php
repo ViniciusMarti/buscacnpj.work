@@ -332,25 +332,41 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
     </div>
 
     <!-- CAMBLY AD -->
-    <div class="promo-banner fade-up">
+    <section class="promo-banner fade-up">
         <div class="promo-content">
             <div class="promo-brand">
-                <img src="/assets/cambly-logo.png" alt="Cambly" width="172" height="49" style="width: auto;">
+                <img src="/assets/cambly-logo.png" alt="Cambly Logo">
             </div>
-            <h3>Invista em você: Inglês fluente para decolar a carreira</h3>
-            <p>O melhor investimento é no seu conhecimento. O plano <strong>Pequenos Grupos</strong> te conecta com tutores nativos para você ganhar o mercado global.</p>
+            <h3>Comece hoje. Aprenda para a vida.</h3>
+            <p>Pequenos grupos: Bom para quem quer melhorar a fala e escuta com nativos e alunos do mundo todo. Planos que cabem no seu bolso e na sua rotina.</p>
+            
+            <ul class="promo-benefits">
+                <li><i class="fas fa-check-circle"></i> Tutores 100% nativos de língua inglesa</li>
+                <li><i class="fas fa-check-circle"></i> Aulas em pequenos grupos (tutor + até 2 alunos)</li>
+                <li><i class="fas fa-check-circle"></i> Atividades ilimitadas de pronúncia e gramática</li>
+            </ul>
+
             <div class="promo-price">
-                <span class="amount">R$&nbsp;52</span>
-                <span class="term">/mês</span>
-                <span class="badge">Opção mais vendida</span>
+                <div class="price-details">
+                    <span class="price-old">A partir de R$ 93/mês</span>
+                    <div class="price-new">
+                        <span class="amount">R$ 37</span>
+                        <span class="term">/mês</span>
+                    </div>
+                </div>
+                <span class="badge">MENOR PREÇO</span>
             </div>
-            <a href="https://www.cambly.com/invite/VINICIUSCODES?st=030726&amp;sc=4" target="_blank" rel="sponsored" class="promo-cta" aria-label="Ir para o Cambly e aproveitar oferta de inglês">
-                Começar agora 
-                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24"><path d="M5 12h14m-7-7 7 7-7 7"/></svg>
+            
+            <a href="https://www.cambly.com/invite/VINICIUSCODES?st=031124&referralCode=VINICIUSCODES" class="promo-cta" target="_blank" rel="sponsored">
+                Aprender inglês agora <i class="fas fa-arrow-right"></i>
             </a>
+            
+            <p class="disclaimer">
+                * Preço sujeito a alteração sem aviso prévio.
+            </p>
         </div>
         <div class="promo-image"></div>
-    </div>
+    </section>
     <!-- /CAMBLY AD -->
 
     <h2 class="sec-title">Localização & Contato</h2>
@@ -365,6 +381,21 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             if ($tel2) echo " / " . $tel2;
         ?></p></div>
         <div class="info-box"><div class="data-label">Email</div><p><?php echo strtolower($data['email']) ?: '—'; ?></p></div>
+    </div>
+
+    <!-- Google Maps Card -->
+    <div class="info-box fade-up" style="margin-top: 24px; padding: 0; overflow: hidden; border-radius: 24px; border: 1px solid var(--border); box-shadow: var(--shadow-lg); position: relative;">
+        <div style="position: absolute; top: 15px; left: 15px; z-index: 10; background: var(--surface); padding: 8px 16px; border-radius: 100px; font-size: 0.75rem; font-weight: 800; color: var(--primary); box-shadow: var(--shadow-md); border: 1px solid var(--border); display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-location-dot"></i> LOCALIZAÇÃO NO MAPA
+        </div>
+        <iframe 
+            width="100%" 
+            height="400" 
+            frameborder="0" 
+            style="border:0; display: block; filter: contrast(1.05) saturate(1.1);" 
+            src="https://maps.google.com/maps?q=<?php echo urlencode($data['logradouro'] . ', ' . $data['numero'] . ' - ' . $data['bairro'] . ', ' . $data['municipio'] . ' - ' . $data['sigla_uf']); ?>&output=embed" 
+            allowfullscreen>
+        </iframe>
     </div>
 
     <h2 class="sec-title">Opções Tributárias</h2>
