@@ -353,11 +353,12 @@
                         </p>
                         <form id="form-upload" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1rem;">
                             <div style="border: 2px dashed var(--border); padding: 2rem; border-radius: 1rem; text-align: center; cursor: pointer;" onclick="document.getElementById('input-batch-files').click()">
-                                <i class="fas fa-file-archive" style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
-                                <div id="file-count-label">Clique para selecionar arquivos (.csv, .gz, .csv.gz)</div>
-                                <input type="file" id="input-batch-files" name="files[]" multiple accept=".gz,.csv" style="display: none;">
+                                <i class="fas fa-folder-open" style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                                <div id="file-count-label">Clique para selecionar FOLDERS ou ARQUIVOS</div>
+                                <p style="font-size: 0.65rem; color: var(--text-muted); margin-top: 5px;">Você pode selecionar a pasta "shards" inteira.</p>
+                                <input type="file" id="input-batch-files" name="files[]" multiple webkitdirectory directory accept=".gz,.csv" style="display: none;">
                             </div>
-                            <button type="submit" class="btn-primary" style="justify-content: center;">Subir Arquivos em Massa</button>
+                            <button type="submit" class="btn-primary" style="justify-content: center;">Subir Pasta Completa</button>
                         </form>
                         <div id="upload-status" style="margin-top: 1rem; font-size: 0.8rem; max-height: 150px; overflow-y: auto;"></div>
                         <div id="upload-progress-container" style="display:none; height: 10px; background: #334155; margin-top: 10px; border-radius: 5px; overflow: hidden;">
@@ -533,10 +534,18 @@
 
         formUpload.addEventListener('submit', async (e) => {
             e.preventDefault();
-            if (fileInput.files.length === 0) return alert('Selecione arquivos primeiro');
+            if (fileInput.files.length === 0) return alert('Selecione uma pasta ou arquivos primeiro');
             
-            const formData = new FormData(formUpload);
-            uploadStatus.innerHTML = '<span style="color: var(--warning)">Processando e enviando arquivos...</span>';
+            const formData = new FormData();
+            // Adicionamos os arquivos manualmente para capturar o webkitRelativePath se disponível
+            for (let i = 0; i < fileInput.files.length; i++) {
+                const file = fileInput.files[i];
+                formData.append('files[]', file);
+                // Enviamos o caminho relativo para o PHP saber em qual subpasta o arquivo estava
+                formData.append('paths[]', file.webkitRelativePath || file.name);
+            }
+
+            uploadStatus.innerHTML = '<span style="color: var(--warning)">Processando e enviando pasta... isso pode demorar dependendo do tamanho.</span>';
             uploadProgressContainer.style.display = 'block';
             uploadProgressBar.style.width = '0%';
 

@@ -14,6 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $files = $_FILES['files'] ?? null;
+$paths = $_POST['paths'] ?? []; // Caminhos relativos enviados pelo JS
 
 if (!$files || empty($files['name'][0])) {
     die(json_encode(['success' => false, 'message' => 'Nenhum arquivo enviado']));
@@ -25,27 +26,17 @@ $results = [
     'errors' => []
 ];
 
-// Mapeamento de nomes de arquivos para tipos
-$typeMap = [
-    'empresas' => 'empresas.csv.gz',
-    'estabelecimentos' => 'estabelecimentos.csv.gz',
-    'socios' => 'socios.csv.gz'
-];
-
 foreach ($files['name'] as $key => $originalName) {
     if ($files['error'][$key] !== UPLOAD_ERR_OK) {
         $results['errors'][] = "Erro no arquivo $originalName: Cod " . $files['error'][$key];
         continue;
     }
 
-    // Lógica de detecção: 
-    // Exemplo de nome: "buscacnpj11_empresas.csv.gz" ou "buscacnpj5/socios.csv"
-    // Vamos tentar pegar o número do banco e o tipo.
+    // Usamos o caminho relativo (path) para detectar o banco, pois ele contém o nome da pasta
+    $relativePath = strtolower($paths[$key] ?? $originalName);
     
-    $cleanName = strtolower($originalName);
-    
-    // 1. Detectar o Shard (Banco)
-    preg_match('/buscacnpj(\d+)/', $cleanName, $matches);
+    // 1. Detectar o Shard (Banco) - Pode estar no nome da pasta ou do arquivo
+    preg_match('/buscacnpj(\d+)/', $relativePath, $matches);
     $shardNum = isset($matches[1]) ? (int)$matches[1] : null;
 
     if (!$shardNum || $shardNum < 1 || $shardNum > 32) {
