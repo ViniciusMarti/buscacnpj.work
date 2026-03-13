@@ -1,6 +1,6 @@
 <?php
 /**
- * Importador de CNPJ - Handler de Upload
+ * Importador de CNPJ - Handler de Upload em Massa
  * Local: /public_html/importador/upload_handler.php
  */
 
@@ -13,64 +13,85 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     die(json_encode(['success' => false, 'message' => 'Método não permitido']));
 }
 
-$shard = $_POST['shard'] ?? '';
-$type = $_POST['type'] ?? ''; // empresas, estabelecimentos, socios
-$file = $_FILES['file'] ?? null;
+$files = $_FILES['files'] ?? null;
 
-if (!$shard || !$type || !$file) {
-    die(json_encode(['success' => false, 'message' => 'Dados incompletos']));
+if (!$files || empty($files['name'][0])) {
+    die(json_encode(['success' => false, 'message' => 'Nenhum arquivo enviado']));
 }
 
-// Validar Shard (1-32)
-$shardInt = (int)$shard;
-if ($shardInt < 1 || $shardInt > 32) {
-    die(json_encode(['success' => false, 'message' => 'Shard inválido']));
+$results = [
+    'success' => true,
+    'uploaded' => [],
+    'errors' => []
+];
+
+// Mapeamento de nomes de arquivos para tipos
+$typeMap = [
+    'empresas' => 'empresas.csv.gz',
+    'estabelecimentos' => 'estabelecimentos.csv.gz',
+    'socios' => 'socios.csv.gz'
+];
+
+foreach ($files['name'] as $key => $originalName) {
+    if ($files['error'][$key] !== UPLOAD_ERR_OK) {
+        $results['errors'][] = "Erro no arquivo $originalName: Cod " . $files['error'][$key];
+        continue;
+    }
+
+    // Lógica de detecção: 
+    // Exemplo de nome: "buscacnpj11_empresas.csv.gz" ou "buscacnpj5/socios.csv"
+    // Vamos tentar pegar o número do banco e o tipo.
+    
+    $cleanName = strtolower($originalName);
+    
+    // 1. Detectar o Shard (Banco)
+    preg_match('/buscacnpj(\d+)/', $cleanName, $matches);
+    $shardNum = isset($matches[1]) ? (int)$matches[1] : null;
+
+    if (!$shardNum || $shardNum < 1 || $shardNum > 32) {
+        $results['errors'][] = "Não foi possível identificar o Banco (1-32) no arquivo: $originalName";
+        continue;
+    }
+
+    // 2. Detectar o Tipo
+    $detectedType = null;
+    foreach (['empresas', 'estabelecimentos', 'socios'] as $t) {
+        if (strpos($cleanName, $t) !== false) {
+            $detectedType = $t;
+            break;
+        }
+    }
+
+    if (!$detectedType) {
+        $results['errors'][] = "Não foi possível identificar o tipo de dados (empresas, estabelecimentos, socios) no arquivo: $originalName";
+        continue;
+    }
+
+    // 3. Definir Destino
+    $targetDir = "{$BASE_SHARDS_PATH}/buscacnpj{$shardNum}";
+    if (!is_dir($targetDir)) {
+        mkdir($targetDir, 0777, true);
+    }
+
+    // Salva sempre no formato padrão que o importador espera
+    $finalFileName = "{$detectedType}.csv.gz";
+    // Se o arquivo original não for .gz, ele salva como .csv (o worker já lida com isso)
+    if (strpos($cleanName, '.gz') === false && strpos($cleanName, '.zip') === false) {
+        $finalFileName = "{$detectedType}.csv";
+    }
+
+    $targetFile = "{$targetDir}/{$finalFileName}";
+
+    if (move_uploaded_file($files['tmp_name'][$key], $targetFile)) {
+        chmod($targetFile, 0644);
+        $results['uploaded'][] = "Banco {$shardNum} > {$finalFileName}";
+    } else {
+        $results['errors'][] = "Erro ao mover arquivo: $originalName";
+    }
 }
 
-// Validar Tipo
-$validTypes = ['empresas', 'estabelecimentos', 'socios'];
-if (!in_array($type, $validTypes)) {
-    die(json_encode(['success' => false, 'message' => 'Tipo de arquivo inválido']));
+if (empty($results['uploaded']) && !empty($results['errors'])) {
+    $results['success'] = false;
 }
 
-// Validar Extensão
-$ext = pathinfo($file['name'], PATHINFO_EXTENSION);
-$ext2 = pathinfo(str_replace('.gz', '', $file['name']), PATHINFO_EXTENSION);
-
-if (!str_ends_with($file['name'], '.csv.gz') && !str_ends_with($file['name'], '.gz')) {
-     // Permite .gz genérico caso o usuário tenha renomeado
-}
-
-$targetDir = "{$BASE_SHARDS_PATH}/buscacnpj{$shardInt}";
-if (!is_dir($targetDir)) {
-    mkdir($targetDir, 0777, true);
-}
-
-$targetFile = "{$targetDir}/{$type}.csv.gz";
-
-// Verificar erros de upload (importante para arquivos grandes)
-if ($file['error'] !== UPLOAD_ERR_OK) {
-    $errors = [
-        UPLOAD_ERR_INI_SIZE   => 'O arquivo excede o limite definido no php.ini (upload_max_filesize).',
-        UPLOAD_ERR_FORM_SIZE  => 'O arquivo excede o limite definido no formulário HTML.',
-        UPLOAD_ERR_PARTIAL    => 'O upload foi feito apenas parcialmente.',
-        UPLOAD_ERR_NO_FILE    => 'Nenhum arquivo foi enviado.',
-        UPLOAD_ERR_NO_TMP_DIR => 'Pasta temporária ausente.',
-        UPLOAD_ERR_CANT_WRITE => 'Falha ao escrever arquivo no disco.',
-        UPLOAD_ERR_EXTENSION  => 'Uma extensão do PHP interrompeu o upload.',
-    ];
-    $msg = $errors[$file['error']] ?? 'Erro desconhecido no upload.';
-    die(json_encode(['success' => false, 'message' => $msg]));
-}
-
-// Mover arquivo
-if (move_uploaded_file($file['tmp_name'], $targetFile)) {
-    chmod($targetFile, 0644);
-    echo json_encode([
-        'success' => true, 
-        'message' => "Arquivo {$type}.csv.gz enviado com sucesso para Shard {$shardInt}",
-        'path' => $targetFile
-    ]);
-} else {
-    echo json_encode(['success' => false, 'message' => 'Erro ao mover o arquivo para a pasta final. Verifique permissões.']);
-}
+echo json_encode($results);

@@ -347,30 +347,20 @@
 
                     <!-- Seção de Upload (Oculta por padrão) -->
                     <div id="upload-section" class="card" style="margin-top: 1.5rem; display: none; background: rgba(255,255,255,0.02);">
-                        <h4 style="margin-bottom: 1rem;"><i class="fas fa-upload"></i> Central de Upload</h4>
-                        <form id="form-upload" enctype="multipart/form-data" style="display: grid; grid-template-columns: 1fr 1fr 1fr auto; gap: 0.5rem; align-items: end;">
-                            <div>
-                                <label class="stat-label">Shard</label>
-                                <select name="shard" style="width: 100%; padding: 0.5rem; border-radius: 4px; background: #1e293b; color: white; border: 1px solid var(--border);">
-                                    <?php for($i=1; $i<=32; $i++) echo "<option value='$i'>Banco $i</option>"; ?>
-                                </select>
+                        <h4 style="margin-bottom: 0.5rem;"><i class="fas fa-upload"></i> Central de Upload Inteligente</h4>
+                        <p style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 1rem;">
+                            Selecione vários arquivos (Ex: <b>buscacnpj11_empresas.csv.gz</b>). <br>O sistema identifica o banco e o tipo pelo nome automaticamente.
+                        </p>
+                        <form id="form-upload" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <div style="border: 2px dashed var(--border); padding: 2rem; border-radius: 1rem; text-align: center; cursor: pointer;" onclick="document.getElementById('input-batch-files').click()">
+                                <i class="fas fa-file-archive" style="font-size: 2rem; color: var(--primary); margin-bottom: 1rem;"></i>
+                                <div id="file-count-label">Clique para selecionar arquivos (.csv, .gz, .csv.gz)</div>
+                                <input type="file" id="input-batch-files" name="files[]" multiple accept=".gz,.csv" style="display: none;">
                             </div>
-                            <div>
-                                <label class="stat-label">Tipo</label>
-                                <select name="type" style="width: 100%; padding: 0.5rem; border-radius: 4px; background: #1e293b; color: white; border: 1px solid var(--border);">
-                                    <option value="empresas">Empresas</option>
-                                    <option value="estabelecimentos">Estabelecimentos</option>
-                                    <option value="socios">Sócios</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="stat-label">Arquivo (.csv.gz)</label>
-                                <input type="file" name="file" accept=".gz" style="width: 100%; font-size: 0.75rem; color: var(--text-muted);">
-                            </div>
-                            <button type="submit" class="btn-primary" style="padding: 0.5rem 1rem;">Enviar</button>
+                            <button type="submit" class="btn-primary" style="justify-content: center;">Subir Arquivos em Massa</button>
                         </form>
-                        <div id="upload-status" style="margin-top: 0.5rem; font-size: 0.8rem;"></div>
-                        <div id="upload-progress-container" style="display:none; height: 4px; background: #334155; margin-top: 10px; border-radius: 2px;">
+                        <div id="upload-status" style="margin-top: 1rem; font-size: 0.8rem; max-height: 150px; overflow-y: auto;"></div>
+                        <div id="upload-progress-container" style="display:none; height: 10px; background: #334155; margin-top: 10px; border-radius: 5px; overflow: hidden;">
                             <div id="upload-progress-bar" style="width: 0%; height: 100%; background: var(--primary); transition: width 0.3s;"></div>
                         </div>
                     </div>
@@ -533,12 +523,20 @@
         const uploadStatus = document.getElementById('upload-status');
         const uploadProgressBar = document.getElementById('upload-progress-bar');
         const uploadProgressContainer = document.getElementById('upload-progress-container');
+        const fileInput = document.getElementById('input-batch-files');
+        const fileLabel = document.getElementById('file-count-label');
+
+        fileInput.addEventListener('change', () => {
+            const count = fileInput.files.length;
+            fileLabel.textContent = count > 0 ? `${count} arquivos selecionados` : 'Clique para selecionar arquivos';
+        });
 
         formUpload.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const formData = new FormData(formUpload);
+            if (fileInput.files.length === 0) return alert('Selecione arquivos primeiro');
             
-            uploadStatus.innerHTML = '<span style="color: var(--warning)">Enviando arquivo... aguarde.</span>';
+            const formData = new FormData(formUpload);
+            uploadStatus.innerHTML = '<span style="color: var(--warning)">Processando e enviando arquivos...</span>';
             uploadProgressContainer.style.display = 'block';
             uploadProgressBar.style.width = '0%';
 
@@ -550,24 +548,33 @@
                     if (e.lengthComputable) {
                         const percent = Math.round((e.loaded / e.total) * 100);
                         uploadProgressBar.style.width = percent + '%';
+                        if (percent === 100) uploadStatus.innerHTML = '<span style="color: var(--warning)">Upload concluído. Finalizando no servidor...</span>';
                     }
                 };
 
                 xhr.onload = function() {
-                    const result = JSON.parse(xhr.responseText);
-                    if (result.success) {
-                        uploadStatus.innerHTML = `<span style="color: var(--success)"><i class="fas fa-check"></i> ${result.message}</span>`;
-                        addLog(result.message, 'success');
-                        formUpload.reset();
-                    } else {
-                        uploadStatus.innerHTML = `<span style="color: var(--danger)"><i class="fas fa-times"></i> Erro: ${result.message}</span>`;
-                        addLog('Erro no upload: ' + result.message, 'error');
+                    try {
+                        const result = JSON.parse(xhr.responseText);
+                        let html = '';
+                        if (result.uploaded.length) {
+                            html += `<div style="color: var(--success); margin-bottom: 5px;">✅ Sucesso (${result.uploaded.length}):</div>`;
+                            result.uploaded.forEach(item => {
+                                html += `<div style="padding-left: 10px; font-size: 0.75rem;">• ${item}</div>`;
+                                addLog(`Upload concluído: ${item}`, 'success');
+                            });
+                        }
+                        if (result.errors.length) {
+                            html += `<div style="color: var(--danger); margin-top: 10px;">❌ Erros (${result.errors.length}):</div>`;
+                            result.errors.forEach(err => {
+                                html += `<div style="padding-left: 10px; font-size: 0.75rem;">• ${err}</div>`;
+                                addLog(err, 'error');
+                            });
+                        }
+                        uploadStatus.innerHTML = html;
+                    } catch (e) {
+                        uploadStatus.innerHTML = '<span style="color: var(--danger)">Erro na resposta do servidor.</span>';
                     }
-                    setTimeout(() => { uploadProgressContainer.style.display = 'none'; }, 3000);
-                };
-
-                xhr.onerror = function() {
-                    uploadStatus.innerHTML = '<span style="color: var(--danger)">Erro de conexão. Verifique o limite de upload do servidor.</span>';
+                    setTimeout(() => { uploadProgressContainer.style.display = 'none'; }, 5000);
                 };
 
                 xhr.send(formData);
