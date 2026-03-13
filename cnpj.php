@@ -337,18 +337,18 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             <div class="promo-brand">
                 <img src="/assets/cambly-logo.png" alt="Cambly Logo">
             </div>
-            <h3>Comece hoje. Aprenda para a vida.</h3>
-            <p>Pequenos grupos: Bom para quem quer melhorar a fala e escuta com nativos e alunos do mundo todo. Planos que cabem no seu bolso e na sua rotina.</p>
+            <h3>Comece hoje. Fale inglês com confiança.</h3>
+            <p>Chega de travar quando precisa falar inglês. Aprenda de forma prática com aulas online feitas para quem quer evoluir rápido, com professores experientes e alunos do mundo todo. Estude no seu ritmo, pratique conversação desde o início e ganhe confiança para usar o inglês na vida real.</p>
             
             <ul class="promo-benefits">
-                <li><i class="fas fa-check-circle"></i> Tutores 100% nativos de língua inglesa</li>
-                <li><i class="fas fa-check-circle"></i> Aulas em pequenos grupos (tutor + até 2 alunos)</li>
-                <li><i class="fas fa-check-circle"></i> Atividades ilimitadas de pronúncia e gramática</li>
+                <li><i class="fas fa-check-circle"></i> Professores experientes focados em conversação</li>
+                <li><i class="fas fa-check-circle"></i> Aulas online ao vivo em pequenos grupos</li>
+                <li><i class="fas fa-check-circle"></i> Prática ilimitada de fala, pronúncia e gramática</li>
             </ul>
 
             <div class="promo-price">
                 <div class="price-details">
-                    <span class="price-old">A partir de R$ 93/mês</span>
+                    <span class="price-old">De R$ 93/mês</span>
                     <div class="price-new">
                         <span class="amount">R$ 37</span>
                         <span class="term">/mês</span>
@@ -358,7 +358,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
             </div>
             
             <a href="https://www.cambly.com/invite/VINICIUSCODES?st=031124&referralCode=VINICIUSCODES" class="promo-cta" target="_blank" rel="sponsored">
-                Aprender inglês agora <i class="fas fa-arrow-right"></i>
+                Quero começar a aprender inglês →
             </a>
             
             <p class="disclaimer">
