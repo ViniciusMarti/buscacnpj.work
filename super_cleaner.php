@@ -68,19 +68,46 @@ if ($conn->connect_error) {
         logMe("Limpando tabela: [$table]...");
         
         $res = $conn->query("SHOW TABLES LIKE '$table'");
-        if ($res->num_rows == 0) {
+        if (!$res || $res->num_rows == 0) {
             logMe("Tabela [$table] inexistente. Pulando.", "error");
             continue;
         }
 
-        // Check if already protected to skip and save time
+        // Check for existing protection
+        $idxRes = $conn->query("SHOW INDEX FROM $table");
         $isProtected = false;
-        $idxRes = $conn->query("SHOW INDEX FROM $table WHERE Key_name = 'PRIMARY' OR Key_name = 'idx_unique_clean' OR Key_name = 'idx_unique_socio'");
-        if ($idxRes && $idxRes->num_rows > 0) {
-            logMe("Tabela [$table] JÁ ESTÁ PROTEGIDA. Pulando para ganhar tempo.", "success");
+        if ($idxRes) {
+            while ($row = $idxRes->fetch_assoc()) {
+                if ($row['Key_name'] == 'PRIMARY' || $row['Key_name'] == 'idx_unique_clean' || $row['Key_name'] == 'idx_unique_socio') {
+                    $isProtected = true; break;
+                }
+            }
+        }
+        
+        if ($isProtected) {
+            logMe("Tabela [$table] JÁ ESTÁ PROTEGIDA. Pulando.", "success");
             continue;
         }
 
+        // Check row count
+        $cntRes = $conn->query("SELECT COUNT(*) as total FROM $table");
+        $total = ($cntRes) ? $cntRes->fetch_assoc()['total'] : 0;
+
+        if ($total == 0) {
+            logMe("Tabela [$table] VAZIA. Aplicando proteção direta...");
+            if (is_array($pk)) {
+                $pkItems = implode(",", $pk);
+                $q = $conn->query("ALTER TABLE $table ADD UNIQUE INDEX idx_unique_clean ($pkItems)");
+            } else {
+                $q = $conn->query("ALTER TABLE $table ADD PRIMARY KEY ($pk)");
+            }
+            if ($q) logMe("Tabela [$table] protegida com sucesso (vazia).", "success");
+            else logMe("Falha ao proteger tabela vazia: " . $conn->error, "error");
+            continue;
+        }
+
+        // Migration for non-empty tables
+        logMe("Tabela com $total registros. Removendo duplicatas... (Aguarde)");
         $conn->query("DROP TABLE IF EXISTS {$table}_new");
         $conn->query("CREATE TABLE {$table}_new LIKE $table");
         
@@ -91,22 +118,23 @@ if ($conn->connect_error) {
             $conn->query("ALTER TABLE {$table}_new ADD PRIMARY KEY ($pk)");
         }
 
-        logMe("Removendo duplicatas... (Aguarde)");
         $conn->query("INSERT IGNORE INTO {$table}_new SELECT * FROM $table");
         $affected = $conn->affected_rows;
 
         $conn->query("DROP TABLE IF EXISTS {$table}_old");
-        $conn->query("RENAME TABLE $table TO {$table}_old, {$table}_new TO $table");
-        $conn->query("DROP TABLE {$table}_old");
-        
-        logMe("Tabela [$table] finalizada. [$affected] registros únicos.", "success");
+        if ($conn->query("RENAME TABLE $table TO {$table}_old, {$table}_new TO $table")) {
+            $conn->query("DROP TABLE {$table}_old");
+            logMe("Tabela [$table] finalizada. [$affected] registros únicos.", "success");
+        } else {
+            logMe("ERRO ao renomear tabela [$table]: " . $conn->error, "error");
+        }
     }
 
     $conn->close();
-    logMe("Shard $current finalizado com sucesso!", "success");
+    logMe("Shard $current finalizado!", "success");
     
     $next = $current + 1;
-    echo "<div class='info'>Aguardando 2 segundos para o próximo Shard ($next)...</div>";
-    echo "<script>setTimeout(() => { window.location.href='?shard=$next'; }, 2000);</script>";
+    echo "<div class='info'>Aguardando salto para o próximo Shard ($next)...</div>";
+    echo "<script>setTimeout(() => { window.location.href='?shard=$next'; }, 1000);</script>";
 }
 echo "<div id='scroll-anchor'></div></body></html>";
