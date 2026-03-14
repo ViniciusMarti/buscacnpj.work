@@ -1,18 +1,22 @@
 <?php
 require_once __DIR__ . '/config/db.php';
-try {
-    $db = getSpecificConnection('u582732852_buscacnpj1');
-    echo "<h1>Database: " . $db->query('SELECT DATABASE()')->fetchColumn() . "</h1>";
-    $stmt = $db->query("DESCRIBE dados_cnpj");
-    echo "<table border='1'>";
-    while($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-        echo "<tr>";
-        foreach($row as $key => $val) {
-            echo "<td>$key: $val</td>";
+$db = getDB();
+$tables = ['empresas', 'estabelecimentos', 'socios'];
+echo "<pre>";
+foreach ($tables as $t) {
+    echo "Tabela: $t\n";
+    try {
+        $q = $db->query("DESCRIBE $t");
+        if ($q) {
+            while ($r = $q->fetch(PDO::FETCH_ASSOC)) {
+                echo "  {$r['Field']} ({$r['Type']})\n";
+            }
+        } else {
+            echo "  Nao foi possivel descrever a tabela.\n";
         }
-        echo "</tr>";
+    } catch (Exception $e) {
+        echo "  Erro: " . $e->getMessage() . "\n";
     }
-    echo "</table>";
-} catch (Exception $e) {
-    echo "Error: " . $e->getMessage();
+    echo "\n";
 }
+echo "</pre>";
