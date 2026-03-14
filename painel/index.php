@@ -175,6 +175,8 @@
                 .then(t => alert(t));
         }
 
+        let watchdogTimer = 0;
+
         function load() {
             fetch("api.php")
                 .then(r => r.json())
@@ -182,8 +184,10 @@
                     if (d.error) return;
 
                     const statusTag = document.getElementById("status-tag");
-                    statusTag.className = "status-tag " + (d.running ? "running" : "stopped");
-                    statusTag.innerText = d.running ? "RODANDO" : "PARADO";
+                    const isRunning = d.running && (Date.now() / 1000 - d.last_update < 60);
+
+                    statusTag.className = "status-tag " + (isRunning ? "running" : "stopped");
+                    statusTag.innerText = isRunning ? "RODANDO" : "PARADO (AGUARDANDO)";
 
                     document.getElementById("linhas").innerText = d.linhas.toLocaleString();
                     document.getElementById("vel").innerText = d.velocidade.toLocaleString();
@@ -191,6 +195,18 @@
                     
                     const lastUpdate = new Date(d.last_update * 1000).toLocaleTimeString();
                     document.getElementById("last-update").innerText = "Sincronizado às: " + lastUpdate;
+
+                    // Watchdog: If stopped for more than 40s and not finished, trigger resume
+                    if (!isRunning) {
+                        watchdogTimer++;
+                        if (watchdogTimer > 15) { // ~30 seconds of inactivity
+                            console.log("Watchdog: Tentando reiniciar automaticamente...");
+                            fetch("../import/engine.php");
+                            watchdogTimer = 0;
+                        }
+                    } else {
+                        watchdogTimer = 0;
+                    }
 
                     let tbody = "";
                     for (let db in d.db) {

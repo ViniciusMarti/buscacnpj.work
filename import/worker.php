@@ -86,11 +86,19 @@ function importar($pasta, $tabela){
 
         $lineCount = 0;
         $batch = [];
-        $batchLimit = 10000; // Large batch to group by shard
+        $batchLimit = 5000;
+        
+        $rowsToSkip = $s['current_file_offset'][$fileKey] ?? 0;
+        $skipped = 0;
 
         while (!gzeof($gz)) {
             $line = gzgets($gz);
             if (!$line) continue;
+
+            if ($skipped < $rowsToSkip) {
+                $skipped++;
+                continue;
+            }
             
             $row = str_getcsv($line);
             if (empty($row[0])) continue;
@@ -103,11 +111,12 @@ function importar($pasta, $tabela){
             $batch[$shardIndex][] = $row;
             $lineCount++;
 
-            if ($lineCount >= $batchLimit) {
+            if (count($batch, COUNT_RECURSIVE) - count($batch) >= $batchLimit) {
                 processBatch($batch, $tabela, $headerStr);
                 
                 $s = status();
                 $s["linhas"] += $lineCount;
+                $s["current_file_offset"][$fileKey] = ($s["current_file_offset"][$fileKey] ?? 0) + $lineCount;
                 $s["last_update"] = time();
                 updateSizes($s);
                 salvar($s);
