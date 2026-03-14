@@ -141,17 +141,13 @@ function importar($pasta, $tabela){
         $batch = [];
         $batchLimit = 5000;
         
-        $rowsToSkip = $s['current_file_offset'][$fileKey] ?? 0;
-        $skipped = 0;
-
+        $byteOffset = $s['current_file_byte_offset'][$fileKey] ?? 0;
+        if ($byteOffset > 0) {
+            gzseek($gz, $byteOffset);
+        }
         while (!gzeof($gz)) {
             $line = gzgets($gz);
             if (!$line) continue;
-
-            if ($skipped < $rowsToSkip) {
-                $skipped++;
-                continue;
-            }
             
             $row = str_getcsv($line);
             if (!isset($row[$shardColIndex]) || empty($row[$shardColIndex])) continue;
@@ -182,7 +178,7 @@ function importar($pasta, $tabela){
                 }
                 
                 $s["linhas"] += $lineCount;
-                $s["current_file_offset"][$fileKey] = ($s["current_file_offset"][$fileKey] ?? 0) + $lineCount;
+                $s["current_file_byte_offset"][$fileKey] = gztell($gz);
                 $s["last_update"] = $now;
                 updateSizes($s);
                 salvar($s);
@@ -222,13 +218,14 @@ function importar($pasta, $tabela){
             processBatch($batch, $tabela, $headerStr);
             $s = status();
             $s["linhas"] += $lineCount;
+            $s["current_file_byte_offset"][$fileKey] = gztell($gz);
             $s["last_update"] = time();
             salvar($s);
         }
 
         $s = status();
         $s['arquivos_processados'][$fileKey] = true;
-        unset($s['current_file_offset'][$fileKey]);
+        unset($s['current_file_byte_offset'][$fileKey]);
         salvar($s);
         gzclose($gz);
     }
@@ -263,8 +260,9 @@ function processBatch($batchByShard, $tabela, $headerStr) {
         }
         
         $dbKey = $tabela;
-        if ($tabela == "estabelecimentos") $dbKey = "estabelecimento";
-        if ($tabela == "socios") $dbKey = "socio";
+        // Map any inconsistencies to the singular keys expected by the UI
+        if ($tabela == "estabelecimentos" || $tabela == "estabelecimento") $dbKey = "estabelecimento";
+        if ($tabela == "socios" || $tabela == "socio") $dbKey = "socio";
 
         $s["db"][$db][$dbKey] += count($rows);
         // Removed $conn->close() here to keep connection cached
