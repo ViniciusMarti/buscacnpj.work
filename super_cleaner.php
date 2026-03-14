@@ -37,23 +37,27 @@ function logMe($msg, $class = "") {
     @flush();
 }
 
-$start = isset($_GET['start']) ? (int)$_GET['start'] : 1;
-$end = isset($_GET['end']) ? (int)$_GET['end'] : 32;
+$current = isset($_GET['shard']) ? (int)$_GET['shard'] : 1;
+$max = 32;
 
-logMe("Configurando faxina para Shards de $start até $end...", "info");
+if ($current > $max) {
+    echo "<div class='success' style='font-size: 24px; margin-top: 40px;'>=== FAXINA COMPLETA EM TODOS OS 32 SHARDS! ===</div>";
+    echo "<p><a href='painel/' style='color:#38bdf8'>Voltar para o Painel</a></p>";
+    exit;
+}
 
-for ($i = $start; $i <= $end; $i++) {
-    $db = "u582732852_buscacnpj" . $i;
-    echo "<script>document.getElementById('p-bar').innerText = 'Limpando Banco: $db ($i / $end)';</script>";
-    
-    logMe("--- Conectando ao Banco: $db ---", "info");
-    
-    $conn = @new mysqli("localhost", $db, $password, $db);
-    if ($conn->connect_error) {
-        logMe("ERRO DE CONEXÃO: " . $conn->connect_error, "error");
-        continue;
-    }
+$db = "u582732852_buscacnpj" . $current;
+echo "<script>document.getElementById('p-bar').innerText = 'Limpando Banco: $db ($current / $max)';</script>";
 
+logMe("--- [SHARD $current / $max] Iniciando: $db ---", "info");
+
+$conn = @new mysqli("localhost", $db, $password, $db);
+if ($conn->connect_error) {
+    logMe("ERRO DE CONEXÃO: " . $conn->connect_error, "error");
+    // Se falhar a conexão, tenta o próximo em 3 segundos
+    $next = $current + 1;
+    echo "<script>setTimeout(() => { window.location.href='?shard=$next'; }, 3000);</script>";
+} else {
     $tables = [
         'empresas' => 'cnpj_basico',
         'estabelecimento' => 'cnpj',
@@ -61,57 +65,48 @@ for ($i = $start; $i <= $end; $i++) {
     ];
 
     foreach ($tables as $table => $pk) {
-        logMe("Verificando duplicatas na tabela [$table]...");
+        logMe("Limpando tabela: [$table]...");
         
-        // Verifica se a tabela existe
         $res = $conn->query("SHOW TABLES LIKE '$table'");
         if ($res->num_rows == 0) {
-            logMe("Tabela [$table] não existe neste shard. Pulando.", "error");
+            logMe("Tabela [$table] inexistente. Pulando.", "error");
             continue;
         }
 
-        // 1. Criar nova tabela com estrutura correta
+        // Check if already protected to skip and save time
+        $isProtected = false;
+        $idxRes = $conn->query("SHOW INDEX FROM $table WHERE Key_name = 'PRIMARY' OR Key_name = 'idx_unique_clean' OR Key_name = 'idx_unique_socio'");
+        if ($idxRes && $idxRes->num_rows > 0) {
+            logMe("Tabela [$table] JÁ ESTÁ PROTEGIDA. Pulando para ganhar tempo.", "success");
+            continue;
+        }
+
         $conn->query("DROP TABLE IF EXISTS {$table}_new");
         $conn->query("CREATE TABLE {$table}_new LIKE $table");
         
-        // 2. Adicionar Chave Primária ou Unique Index
         if (is_array($pk)) {
             $pkItems = implode(",", $pk);
-            $q = $conn->query("ALTER TABLE {$table}_new ADD UNIQUE INDEX idx_unique_clean ($pkItems)");
-            logMe("Adicionando Índice Único Composto ($pkItems)...");
+            $conn->query("ALTER TABLE {$table}_new ADD UNIQUE INDEX idx_unique_clean ($pkItems)");
         } else {
-            $q = $conn->query("ALTER TABLE {$table}_new ADD PRIMARY KEY ($pk)");
-            logMe("Adicionando Chave Primária em ($pk)...");
+            $conn->query("ALTER TABLE {$table}_new ADD PRIMARY KEY ($pk)");
         }
 
-        if (!$q) {
-            logMe("Falha ao preparar estrutura em {$table}_new: " . $conn->error, "error");
-            continue;
-        }
-
-        // 3. Migrar dados usando INSERT IGNORE para deletar duplicatas
-        logMe("Migrando dados e deletando duplicatas (isso pode demorar)...");
+        logMe("Removendo duplicatas... (Aguarde)");
         $conn->query("INSERT IGNORE INTO {$table}_new SELECT * FROM $table");
         $affected = $conn->affected_rows;
-        $total = $conn->query("SELECT COUNT(*) as total FROM $table")->fetch_assoc()['total'];
-        $dups = $total - $affected;
-        
-        logMe("Sucesso! [$affected] registros únicos preservados. [$dups] duplicatas removidas.", "success");
 
-        // 4. Trocar as tabelas
         $conn->query("DROP TABLE IF EXISTS {$table}_old");
         $conn->query("RENAME TABLE $table TO {$table}_old, {$table}_new TO $table");
         $conn->query("DROP TABLE {$table}_old");
         
-        logMe("Tabela [$table] selada e limpa.", "success");
+        logMe("Tabela [$table] finalizada. [$affected] registros únicos.", "success");
     }
 
     $conn->close();
-    logMe("Shard $db finalizado.", "success");
+    logMe("Shard $current finalizado com sucesso!", "success");
+    
+    $next = $current + 1;
+    echo "<div class='info'>Aguardando 2 segundos para o próximo Shard ($next)...</div>";
+    echo "<script>setTimeout(() => { window.location.href='?shard=$next'; }, 2000);</script>";
 }
-
-echo "<div class='success' style='font-size: 24px; margin-top: 40px;'>=== FAXINA CONCLUÍDA COM SUCESSO! ===</div>
-<p>Todos os bancos foram limpos e protegidos contra duplicatas.</p>
-<div id='scroll-anchor'></div>
-</body>
-</html>";
+echo "<div id='scroll-anchor'></div></body></html>";
