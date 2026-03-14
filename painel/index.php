@@ -87,6 +87,20 @@
         tr:hover { background: #334155; }
 
         .chart-container { height: 250px; margin-bottom: 20px; }
+
+        .log-container {
+            background: #000;
+            color: #10b981;
+            font-family: 'Courier New', Courier, monospace;
+            padding: 15px;
+            border-radius: 8px;
+            font-size: 12px;
+            height: 200px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+            border: 1px solid #064e3b;
+        }
+        .log-line { margin-bottom: 4px; border-bottom: 1px solid #064e3b; padding-bottom: 2px; }
     </style>
 </head>
 <body>
@@ -105,7 +119,11 @@
                 <div id="status-tag" class="status-tag">Carregando...</div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Total Linhas Processadas</div>
+                <div class="stat-label">CNPJs Únicos (Novos)</div>
+                <div id="unicos" class="stat-value" style="color: #4ade80;">0</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-label">Total Linhas (Lotes)</div>
                 <div id="linhas" class="stat-value">0</div>
             </div>
             <div class="stat-card">
@@ -113,7 +131,7 @@
                 <div class="stat-value"><span id="vel">0</span> <small>l/s</small></div>
             </div>
             <div class="stat-card">
-                <div class="stat-label">Fase / Última Atualização</div>
+                <div class="stat-label">Fase / Atualização</div>
                 <div class="stat-value" id="fase">-</div>
                 <div id="last-update" style="font-size: 10px; color: #94a3b8;">-</div>
             </div>
@@ -125,6 +143,10 @@
 
         <div class="chart-container">
             <canvas id="chart"></canvas>
+        </div>
+
+        <div class="log-container" id="logs">
+            <div class="log-line">Aguardando logs...</div>
         </div>
 
         <table>
@@ -193,6 +215,7 @@
                     statusTag.innerText = isRunning ? "RODANDO" : "PARADO (AGUARDANDO)";
 
                     document.getElementById("linhas").innerText = d.linhas.toLocaleString();
+                    document.getElementById("unicos").innerText = (d.total_novos_unicos || 0).toLocaleString();
                     document.getElementById("vel").innerText = d.velocidade.toLocaleString();
                     document.getElementById("fase").innerText = d.fase;
                     
@@ -230,6 +253,12 @@
                     // Fake progress visual
                     let p = d.running ? 50 : (d.linhas > 0 ? 100 : 0); 
                     document.getElementById("prog").style.width = p + "%";
+
+                    if (d.logs && d.logs.length > 0) {
+                        const logDiv = document.getElementById("logs");
+                        logDiv.innerHTML = d.logs.map(l => `<div class="log-line">${l}</div>`).join("");
+                        logDiv.scrollTop = logDiv.scrollHeight;
+                    }
 
                     chart.data.labels.push("");
                     chart.data.datasets[0].data.push(d.velocidade);

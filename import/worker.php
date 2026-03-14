@@ -35,6 +35,15 @@ function status(){
  return json_decode(file_get_contents(__DIR__ . "/status.json"),true);
 }
 
+function logger($msg) {
+    global $startTime;
+    $time = date("H:i:s");
+    $elapsed = time() - $startTime;
+    $logMsg = "[$time][{$elapsed}s] $msg\n";
+    file_put_contents(__DIR__ . "/import.log", $logMsg, FILE_APPEND);
+    error_log($msg);
+}
+
 function salvar($s){
  file_put_contents(__DIR__ . "/status.json",json_encode($s), LOCK_EX);
 }
@@ -78,6 +87,7 @@ function triggerSuccessor() {
     curl_exec($ch);
     curl_close($ch);
     error_log("Worker: Successor triggered manually: $url");
+    logger("Auto-renewal: Sucessor disparado devido a timeout.");
 }
 
 // Global state to track which DB size to update next
@@ -257,16 +267,28 @@ function processBatch($batchByShard, $tabela, $headerStr) {
 
         $sql = "INSERT IGNORE INTO $tabela ($headerStr) VALUES " . implode(",", $values);
         if (!$conn->query($sql)) {
-            error_log("Erro no SQL para $db: " . $conn->error . " | SQL length: " . strlen($sql));
+            logger("ERRO SQL em $db [$tabela]: " . $conn->error);
         }
+        $inserted = $conn->affected_rows;
+        $duplicates = count($rows) - $inserted;
+        
         $conn->query("COMMIT");
+        
+        if ($duplicates > 0) {
+            // Logger sampled log (only every 10 batches to not flood)
+            if (rand(1, 10) == 1) {
+                logger("Info [$tabela]: $inserted novos registros, $duplicates duplicatas ignoradas em $db.");
+            }
+        }
         
         $dbKey = $tabela;
         // Map any inconsistencies to the singular keys expected by the UI
         if ($tabela == "estabelecimentos" || $tabela == "estabelecimento") $dbKey = "estabelecimento";
         if ($tabela == "socios" || $tabela == "socio") $dbKey = "socio";
 
-        $s["db"][$db][$dbKey] += count($rows);
+        $s["db"][$db][$dbKey] += $inserted;
+        if (!isset($s["total_novos_unicos"])) $s["total_novos_unicos"] = 0;
+        $s["total_novos_unicos"] += $inserted;
         // Removed $conn->close() here to keep connection cached
     }
     salvar($s);
@@ -280,6 +302,7 @@ if (!isset($s['fase_completa'])) $s['fase_completa'] = [];
 salvar($s);
 
 $fases = [
+    "empresas" => "empresas",
     "estabelecimentos" => "estabelecimento",
     "socios" => "socio"
 ];
@@ -304,7 +327,7 @@ foreach ($fases as $pasta => $tabela) {
         $s["fase"] = $tabela;
         salvar($s);
         
-        error_log("Worker: Iniciando fase: $tabela na pasta $pasta");
+        logger("Iniciando fase: $tabela na pasta $pasta");
         importar($pasta, $tabela);
         
         // After importing, check if we finished all files in this folder
@@ -318,7 +341,7 @@ foreach ($fases as $pasta => $tabela) {
 
         if ($completos >= count($arquivos)) {
             $s['fase_completa'][$tabela] = true;
-            error_log("Worker: Fase $tabela finalizada com sucesso.");
+            logger("Fase $tabela finalizada com sucesso!");
         }
         salvar($s);
         break; 

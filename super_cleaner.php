@@ -17,8 +17,14 @@ for ($i = 1; $i <= 32; $i++) {
         continue;
     }
 
-    // 1. Limpar duplicatas de empresas (se existirem) e colocar PK
-    // Nota: Como o usuario quer apenas estabelecimento e socio, focamos neles primeiro
+    // 1. Limpar duplicatas de empresas e colocar PK em cnpj_basico
+    echo "Limpando empresas... ";
+    $conn->query("CREATE TABLE empresas_new LIKE empresas");
+    $conn->query("ALTER TABLE empresas_new ADD PRIMARY KEY (cnpj_basico)");
+    $conn->query("INSERT IGNORE INTO empresas_new SELECT * FROM empresas");
+    $conn->query("RENAME TABLE empresas TO empresas_old, empresas_new TO empresas");
+    $conn->query("DROP TABLE empresas_old");
+    echo "[OK] ";
     
     // 2. Estabelecimento (PK no CNPJ)
     echo "Limpando estabelecimento... ";

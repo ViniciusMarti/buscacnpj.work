@@ -11,6 +11,15 @@ if (!file_exists($statusFile)) {
 
 // No more 32 DB connections here. 
 // The worker will update the sizes in the JSON occasionally.
-$status=json_decode(file_get_contents($statusFile),true);
+$status = json_decode(file_get_contents($statusFile), true);
+
+// Include last 15 lines of log
+$logFile = "../import/import.log";
+$logs = [];
+if (file_exists($logFile)) {
+    $file = file($logFile);
+    $logs = array_slice($file, -15);
+}
+$status['logs'] = $logs;
 
 echo json_encode($status);
