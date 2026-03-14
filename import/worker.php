@@ -102,8 +102,8 @@ function importar($pasta, $tabela){
         $header = str_getcsv($headerLine);
         
         foreach($header as $key => $val) {
-            if ($val == "nome" && $tabela == "socios") $header[$key] = "nome_socio";
-            if ($val == "qualificacao" && $tabela == "socios") $header[$key] = "qualificacao_socio";
+            if ($val == "nome" && $tabela == "socio") $header[$key] = "nome_socio";
+            if ($val == "qualificacao" && $tabela == "socio") $header[$key] = "qualificacao_socio";
         }
 
         $headerStr = implode(",", $header);
@@ -250,8 +250,8 @@ salvar($s);
 
 $fases = [
     "empresas" => "empresas",
-    "estabelecimentos" => "estabelecimentos",
-    "socios" => "socios"
+    "estabelecimentos" => "estabelecimento",
+    "socios" => "socio"
 ];
 
 foreach ($fases as $pasta => $tabela) {

@@ -20,8 +20,8 @@ foreach ($bancos as $db) {
         continue;
     }
 
-    // 1. Tabela estabelecimentos
-    $sql_est = "CREATE TABLE IF NOT EXISTS estabelecimentos (
+    // 1. Tabela estabelecimento
+    $sql_est = "CREATE TABLE IF NOT EXISTS estabelecimento (
         ano INT,
         mes INT,
         data DATE,
@@ -62,13 +62,13 @@ foreach ($bancos as $db) {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
     if (!$conn->query($sql_est)) {
-        echo "[ERRO estabelecimentos: " . $conn->error . "] ";
+        echo "[ERRO estabelecimento: " . $conn->error . "] ";
     } else {
         echo "[EST OK] ";
     }
 
-    // 2. Tabela socios
-    $sql_soc = "CREATE TABLE IF NOT EXISTS socios (
+    // 2. Tabela socio
+    $sql_soc = "CREATE TABLE IF NOT EXISTS socio (
         ano INT,
         mes INT,
         data DATE,
@@ -87,7 +87,7 @@ foreach ($bancos as $db) {
     ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;";
 
     if (!$conn->query($sql_soc)) {
-        echo "[ERRO socios: " . $conn->error . "] ";
+        echo "[ERRO socio: " . $conn->error . "] ";
     } else {
         echo "[SOC OK] ";
     }
