@@ -313,8 +313,8 @@ salvar($s);
 
 $fases = [
     "empresas" => "empresas",
-    "estabelecimentos" => "estabelecimento",
-    "socios" => "socio"
+    "estabelecimento" => "estabelecimento",
+    "socio" => "socio"
 ];
 
 foreach ($fases as $pasta => $tabela) {
