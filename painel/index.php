@@ -96,7 +96,6 @@
 
         <div class="controls">
             <button onclick="start(false)">Continuar Importação</button>
-            <button class="secondary" onclick="skipEmpresas()">Pular Empresas (Já prontas)</button>
             <button class="secondary" style="background: #991b1b;" onclick="start(true)">Zerar e Recomeçar</button>
         </div>
 
@@ -175,16 +174,6 @@
                 .then(r => r.text())
                 .then(t => {
                     alert(t);
-                    load();
-                });
-        }
-
-        function skipEmpresas() {
-            if (!confirm("Deseja marcar a fase de Empresas como concluída e pular para Estabelecimentos?")) return;
-            fetch("../import/engine.php?skip_empresas=1")
-                .then(r => r.text())
-                .then(t => {
-                    alert("Fase de Empresas pulada! Iniciando Estabelecimentos...");
                     load();
                 });
         }

@@ -249,7 +249,6 @@ if (!isset($s['fase_completa'])) $s['fase_completa'] = [];
 salvar($s);
 
 $fases = [
-    "empresas" => "empresas",
     "estabelecimentos" => "estabelecimento",
     "socios" => "socio"
 ];
