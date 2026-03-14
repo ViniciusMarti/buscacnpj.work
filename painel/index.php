@@ -156,7 +156,8 @@
                     <th>Empresas</th>
                     <th>Estabelecimento</th>
                     <th>Sócio</th>
-                    <th>Tamanho (Size MB)</th>
+                    <th>Proteção (PK)</th>
+                    <th>Tamanho</th>
                 </tr>
             </thead>
             <tbody id="dbs"></tbody>
@@ -245,6 +246,11 @@
                             <td>${x.empresas.toLocaleString()}</td>
                             <td>${x.estabelecimento.toLocaleString()}</td>
                             <td>${x.socio.toLocaleString()}</td>
+                            <td style="font-size: 10px;">
+                                ${x.protected_empresas ? '<span title="Empresas">🏢✅</span>' : '🏢❌'} 
+                                ${x.protected_estabelecimento ? '<span title="Estabelecimento">🏪✅</span>' : '🏪❌'} 
+                                ${x.protected_socio ? '<span title="Socio">👥✅</span>' : '👥❌'}
+                            </td>
                             <td>${x.size} MB</td>
                         </tr>`;
                     }

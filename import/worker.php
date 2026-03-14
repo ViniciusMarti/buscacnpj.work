@@ -106,6 +106,16 @@ function updateSizes(&$s) {
                 $r = $q->fetch_assoc();
                 $s["db"][$db]["size"] = round($r["size"] ?? 0, 2);
             }
+            
+            // Check for PK protection
+            $tablesToCheck = ['empresas', 'estabelecimento', 'socio'];
+            foreach($tablesToCheck as $tbl) {
+                $hasPK = false;
+                $res = $conn->query("SHOW INDEX FROM $tbl WHERE Key_name = 'PRIMARY' OR Key_name = 'idx_unique_clean' OR Key_name = 'idx_unique_socio'");
+                if ($res && $res->num_rows > 0) $hasPK = true;
+                $s["db"][$db]["protected_$tbl"] = $hasPK;
+            }
+
             $conn->close();
         }
         $nextDbToUpdate = ($nextDbToUpdate + 1) % 32;
