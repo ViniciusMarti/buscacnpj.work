@@ -175,9 +175,17 @@ class ImportWorker {
         }
 
         $lastDate = $this->state['ultima_data_processada'];
+        
+        // Vamos construir a query sem filtros genéricos que podem falhar
         $sql = "SELECT * FROM `basedosdados.br_me_cnpj.$currentTable` ";
+        
+        // Se houver uma data, tentamos filtrar por uma coluna que geralmente existe (ou ignoramos se não tivermos certeza)
+        // No esquema da BasedosDados, as tabelas são grandes, por isso as vezes é melhor buscar tudo se não houver coluna de data clara.
+        // Se quiser incremental, precisaremos saber a coluna exata (ex: data_situacao_cadastral)
+        // Para evitar erro 400, vamos remover o WHERE sigla_uf por enquanto.
+        
         if ($lastDate != '1900-01-01') {
-            $sql .= " WHERE sigla_uf IS NOT NULL "; 
+            // $sql .= " WHERE ... > '$lastDate' "; // Removido para evitar erros de coluna inexistente
         }
 
         $pageToken = $this->state['last_page_token'];
