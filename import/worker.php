@@ -118,9 +118,10 @@ function importar($pasta, $tabela){
             $row = str_getcsv($line);
             if (empty($row[0])) continue;
 
-            // Sharding Algorithm: (cnpj_basico % 32) + 1
-            $cnpj_basico = preg_replace('/[^0-9]/', '', $row[0]);
-            if (!$cnpj_basico) continue;
+            // Sharding Algorithm: (cnpj_basico % 32)
+            $cnpj_full = preg_replace('/[^0-9]/', '', $row[0]);
+            if (strlen($cnpj_full) < 8) continue;
+            $cnpj_basico = substr($cnpj_full, 0, 8);
             $shardIndex = (intval($cnpj_basico) % 32); 
             
             $batch[$shardIndex][] = $row;
@@ -248,18 +249,24 @@ foreach ($fases as $pasta => $tabela) {
     $s = status(); 
     if (!($s['fase_completa'][$tabela] ?? false)) {
         
-        // Anti-duplicate failsafe: If the folder is empty, just mark as done and move on
-        $arquivos = glob("../export-cnpj-bd/$pasta/*.gz");
+        $basePath = realpath(__DIR__ . "/..");
+        $targetDir = $basePath . "/export-cnpj-bd/$pasta";
+        $arquivos = glob("$targetDir/*.gz");
+        
+        error_log("Worker: Verificando pasta $targetDir. Arquivos: " . count($arquivos));
+
         if (empty($arquivos)) {
             $s['fase_completa'][$tabela] = true;
+            $s["fase"] = "FIM: " . $tabela;
             salvar($s);
+            error_log("Worker: Pasta $pasta vazia, pulando.");
             continue; 
         }
 
         $s["fase"] = $tabela;
         salvar($s);
         
-        error_log("Iniciando fase: $tabela na pasta $pasta");
+        error_log("Worker: Iniciando fase: $tabela na pasta $pasta");
         importar($pasta, $tabela);
         
         // After importing, check if we finished all files in this folder
@@ -269,9 +276,11 @@ foreach ($fases as $pasta => $tabela) {
             if (isset($s['arquivos_processados'][basename($f)])) $completos++;
         }
         
+        error_log("Worker: Fase $tabela progresso: $completos / " . count($arquivos));
+
         if ($completos >= count($arquivos)) {
             $s['fase_completa'][$tabela] = true;
-            error_log("Fase $tabela finalizada com sucesso.");
+            error_log("Worker: Fase $tabela finalizada com sucesso.");
         }
         salvar($s);
         break; 
