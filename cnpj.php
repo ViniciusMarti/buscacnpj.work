@@ -19,6 +19,13 @@ try {
         include('404-cnpj.php');
         die();
     }
+
+    // Suporte a resposta em JSON (API)
+    if (isset($_GET['json']) || (isset($_GET['format']) && $_GET['format'] === 'json')) {
+        header('Content-Type: application/json; charset=utf-8');
+        echo json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+        exit;
+    }
 } catch (Exception $e) {
     die("Erro ao consultar os bancos de dados: " . $e->getMessage());
 }

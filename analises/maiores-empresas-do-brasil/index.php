@@ -7,11 +7,30 @@ $description = "Descubra quais são as 20 maiores e mais ricas empresas do Brasi
 $canonical = "https://buscacnpjgratis.com.br/analises/maiores-empresas-do-brasil/";
 
 try {
-    // As 20 Maiores - Busca Distribuída
-    $top20 = fetchAllDistributed("SELECT * FROM dados_cnpj WHERE situacao = 'ATIVA' AND capital_social > 0", [], 'capital_social', 'DESC', 20);
+    // As 20 Maiores - Busca Distribuída com Join para pegar CNAE da Matriz
+    $top20 = fetchAllDistributed("
+        SELECT e.razao_social, e.capital_social, e.cnpj_basico, est.cnpj, est.cnae_fiscal_principal 
+        FROM empresas e 
+        LEFT JOIN estabelecimentos est ON e.cnpj_basico = est.cnpj_basico AND est.cnpj LIKE '%0001%'
+        WHERE e.capital_social > 0
+    ", [], 'e.capital_social', 'DESC', 20);
 
-    // Empresas que valem mais que 1 bilhão (count approximate) - Agregação Distribuída
-    $stats_bilhao = aggregateDistributed("SELECT COUNT(*) as c FROM dados_cnpj WHERE capital_social >= 1000000000", []);
+    // Enriquecer com descrições de CNAE via SQLite
+    $cnae_db = getCNAEDB();
+    foreach ($top20 as &$emp) {
+        $emp['cnae_principal_descricao'] = 'Atividade não informada';
+        if ($cnae_db && !empty($emp['cnae_fiscal_principal'])) {
+            $cnae_clean = preg_replace('/\D/', '', $emp['cnae_fiscal_principal']);
+            $stmt_c = $cnae_db->prepare("SELECT descricao FROM cnaes WHERE codigo = ? LIMIT 1");
+            $stmt_c->execute([$cnae_clean]);
+            $res_c = $stmt_c->fetch();
+            if ($res_c) $emp['cnae_principal_descricao'] = $res_c['descricao'];
+        }
+    }
+    unset($emp);
+
+    // Empresas que valem mais que 1 bilhão - Agregação Distribuída
+    $stats_bilhao = aggregateDistributed("SELECT COUNT(*) as c FROM empresas WHERE capital_social >= 1000000000", []);
     $count_bilhao = $stats_bilhao['c'] ?? 'Várias';
     
     // Top 5 separadas

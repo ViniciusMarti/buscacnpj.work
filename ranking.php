@@ -66,7 +66,7 @@ try {
                 SUM(e.capital_social) as total_capital
             FROM estabelecimentos est
             INNER JOIN empresas e ON est.cnpj_basico = e.cnpj_basico
-            WHERE est.situacao_cadastral = 'ATIVA' AND est.uf = :uf
+            WHERE est.situacao_cadastral = 'ATIVA' AND est.sigla_uf = :uf
         ", [':uf' => $uf]);
 
 
@@ -79,7 +79,7 @@ try {
         $city_map = [];
         foreach (getAllConnections() as $db) {
             try {
-                $stmt = $db->prepare("SELECT municipio, COUNT(*) as total FROM estabelecimentos WHERE situacao_cadastral = 'ATIVA' AND uf = :uf GROUP BY municipio ORDER BY total DESC LIMIT 10");
+                $stmt = $db->prepare("SELECT municipio, COUNT(*) as total FROM estabelecimentos WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :uf GROUP BY municipio ORDER BY total DESC LIMIT 10");
 
                 $stmt->execute([':uf' => $uf]);
                 foreach ($stmt->fetchAll() as $r) {
@@ -105,7 +105,7 @@ try {
             try {
                 // CNAE descrição agora vem do SQLite no frontend, mas aqui usamos o código se não tivermos a descrição no DB
                 // Se a descrição não estiver no DB principal, o código a seguir pode precisar de ajuste
-                $stmt = $db->prepare("SELECT cnae_principal as cnae, COUNT(*) as c FROM estabelecimentos WHERE situacao_cadastral = 'ATIVA' AND uf = :uf GROUP BY cnae_principal ORDER BY c DESC LIMIT 1");
+                $stmt = $db->prepare("SELECT cnae_fiscal_principal as cnae, COUNT(*) as c FROM estabelecimentos WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :uf GROUP BY cnae_fiscal_principal ORDER BY c DESC LIMIT 1");
 
                 $stmt->execute([':uf' => $uf]);
                 $r = $stmt->fetch();
@@ -163,7 +163,7 @@ try {
         SELECT est.cnpj, e.razao_social, est.municipio, est.situacao_cadastral, e.capital_social 
         FROM estabelecimentos est 
         INNER JOIN empresas e ON est.cnpj_basico = e.cnpj_basico 
-        WHERE est.situacao_cadastral = 'ATIVA' AND est.uf = :uf";
+        WHERE est.situacao_cadastral = 'ATIVA' AND est.sigla_uf = :uf";
     $params = [':uf' => $uf];
 
     if ($search) {
@@ -171,9 +171,7 @@ try {
         $params[':q'] = "%$search%";
     }
     if ($cnae_filter) {
-        // Como o filtro é por descrição (no frontend antigo), aqui pode ser mais difícil
-        // Idealmente o filtro deveria ser por código. Vou assumir busca no estabelecimentos.cnae_principal
-        $query .= " AND est.cnae_principal = :cnae"; 
+        $query .= " AND est.cnae_fiscal_principal = :cnae"; 
         $params[':cnae'] = $cnae_filter;
     }
     if ($city_filter) {

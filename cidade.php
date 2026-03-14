@@ -52,7 +52,7 @@ try {
     if (!$real_city_name) {
         foreach (getAllConnections() as $db_conn) {
             try {
-                $stmt_c = $db_conn->prepare("SELECT DISTINCT municipio FROM estabelecimentos WHERE uf = :sigla_uf");
+                $stmt_c = $db_conn->prepare("SELECT DISTINCT municipio FROM estabelecimentos WHERE sigla_uf = :sigla_uf");
                 $stmt_c->execute([':sigla_uf' => $uf]);
                 
                 while($row = $stmt_c->fetch(PDO::FETCH_ASSOC)) {
@@ -83,7 +83,7 @@ try {
         SELECT COUNT(*) as count_total, SUM(e.capital_social) as capital_total 
         FROM estabelecimentos est 
         INNER JOIN empresas e ON est.cnpj_basico = e.cnpj_basico
-        WHERE est.situacao_cadastral = 'ATIVA' AND est.uf = :sigla_uf AND est.municipio = :city
+        WHERE est.situacao_cadastral = 'ATIVA' AND est.sigla_uf = :sigla_uf AND est.municipio = :city
     ", [':sigla_uf' => $uf, ':city' => $real_city_name]);
 
 
@@ -94,7 +94,7 @@ try {
     $cnae_map = [];
     foreach (getAllConnections() as $db) {
         try {
-            $stmt_cnae = $db->prepare("SELECT cnae_principal as cnae, COUNT(*) as c FROM estabelecimentos WHERE situacao_cadastral = 'ATIVA' AND uf = :sigla_uf AND municipio = :city GROUP BY cnae_principal ORDER BY c DESC LIMIT 1");
+            $stmt_cnae = $db->prepare("SELECT cnae_fiscal_principal as cnae, COUNT(*) as c FROM estabelecimentos WHERE situacao_cadastral = 'ATIVA' AND sigla_uf = :sigla_uf AND municipio = :city GROUP BY cnae_fiscal_principal ORDER BY c DESC LIMIT 1");
             $stmt_cnae->execute([':sigla_uf' => $uf, ':city' => $real_city_name]);
             $r = $stmt_cnae->fetch(PDO::FETCH_ASSOC);
             if ($r) {
@@ -122,7 +122,7 @@ try {
         SELECT est.cnpj, e.razao_social, e.capital_social, est.situacao_cadastral 
         FROM estabelecimentos est 
         INNER JOIN empresas e ON est.cnpj_basico = e.cnpj_basico
-        WHERE est.situacao_cadastral = 'ATIVA' AND est.uf = :sigla_uf AND est.municipio = :city", 
+        WHERE est.situacao_cadastral = 'ATIVA' AND est.sigla_uf = :sigla_uf AND est.municipio = :city", 
         [':sigla_uf' => $uf, ':city' => $real_city_name], 'e.capital_social', 'DESC', 100);
 
 

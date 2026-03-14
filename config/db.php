@@ -84,14 +84,35 @@ function fetchCNPJ($cnpj): ?array {
     
     $cnpj_basico = substr($clean, 0, 8);
     
-    // 1. Identificar o shard correto
+    // --- SISTEMA DE CACHE POR CNPJ (Ponto 3 da solicitação) ---
+    // Usamos subpastas baseadas nos primeiros 4 dígitos para evitar milhões de arquivos em uma única pasta
+    $p1 = substr($clean, 0, 2);
+    $p2 = substr($clean, 2, 2);
+    $cache_dir = __DIR__ . "/../cache/cnpj/$p1/$p2";
+    if (!is_dir($cache_dir)) @mkdir($cache_dir, 0755, true);
+    $cache_file = $cache_dir . '/' . $clean . '.json';
+    
+    // Cache de 24 horas (86400 segundos) para dados de empresas
+    if (file_exists($cache_file) && (time() - filemtime($cache_file) < 86400)) {
+        return json_decode(file_get_contents($cache_file), true);
+    }
+
+    // --- ROTEAMENTO ESTRITO (Ponto 2 da solicitação) ---
+    // 1. Identificar o shard correto baseado unicamente no cnpj_basico
     $shardName = identifyShard($clean);
     $db = getSpecificConnection($shardName);
     
     if (!$db) return null;
 
-    // 2. Buscar no shard específico
-    return queryCNPJ($db, $clean, $cnpj_basico);
+    // 2. Buscar no shard específico (Sem fallbacks para outros bancos)
+    $data = queryCNPJ($db, $clean, $cnpj_basico);
+
+    // 3. Salvar no cache se encontrar resultados (Sobrescrita automática garante atualização)
+    if ($data) {
+        file_put_contents($cache_file, json_encode($data));
+    }
+
+    return $data;
 }
 
 /**
@@ -99,34 +120,40 @@ function fetchCNPJ($cnpj): ?array {
  */
 function queryCNPJ(PDO $db, $cnpj, $cnpj_basico): ?array {
     try {
-        // Query Estabelecimento (Dados específicos da unidade)
+        // 1. Query Estabelecimento (Primary record for the specific CNPJ)
         $stmt_est = $db->prepare("SELECT * FROM estabelecimentos WHERE cnpj = ? LIMIT 1");
         $stmt_est->execute([$cnpj]);
         $est = $stmt_est->fetch();
         
         if (!$est) return null;
 
-        // Query Empresa (Dados gerais da razão social)
+        // 2. Query Empresa (General company data)
         $stmt_emp = $db->prepare("SELECT * FROM empresas WHERE cnpj_basico = ? LIMIT 1");
         $stmt_emp->execute([$cnpj_basico]);
         $emp = $stmt_emp->fetch();
 
-        // Query Sócios
-        $stmt_soc = $db->prepare("SELECT nome_socio, qualificacao_socio FROM socios WHERE cnpj_basico = ?");
+        // 3. Query Sócios
+        $stmt_soc = $db->prepare("SELECT * FROM socios WHERE cnpj_basico = ?");
         $stmt_soc->execute([$cnpj_basico]);
         $socios = $stmt_soc->fetchAll();
 
+        // --- CONSOLIDAÇÃO E ESTRUTURAÇÃO (Ponto 6 da solicitação) ---
         
-        // Consolidar dados
+        // Mantemos um array "flat" para compatibilidade com o front-end atual
         $data = array_merge($emp ?: [], $est ?: []);
         
-        // Formatar Sócios para o padrão esperado pelo frontend (nome - cargo | nome - cargo)
+        // Adicionamos as chaves estruturadas solicitadas para a API
+        $data['empresa'] = $emp ?: null;
+        $data['estabelecimento'] = $est ?: null;
+        $data['socios'] = $socios ?: [];
+        
+        // Formatar Sócios texto (para o layout HTML legado)
         if ($socios) {
             $socios_formatados = [];
             foreach ($socios as $s) {
-                // Aqui você pode mapear os códigos de qualificação se necessário, 
-                // por enquanto usamos o nome e o código
-                $socios_formatados[] = "{$s['nome_socio']} - {$s['qualificacao_socio']}";
+                $nome = $s['nome'] ?? $s['nome_socio'] ?? 'NOME NÃO INFORMADO';
+                $qualif = $s['qualificacao'] ?? $s['qualificacao_socio'] ?? 'Sócio';
+                $socios_formatados[] = "{$nome} - {$qualif}";
             }
             $data['socios_texto'] = implode('; ', $socios_formatados);
         } else {
@@ -134,19 +161,33 @@ function queryCNPJ(PDO $db, $cnpj, $cnpj_basico): ?array {
         }
 
         // --- NORMALIZAÇÃO DE COLUNAS PARA COMPATIBILIDADE COM FRONTEND ---
-        // O frontend espera alguns nomes de colunas que podem variar
+        // Fallbacks e mapeamentos para manter o site funcionando com o novo schema
         $data['razao_social'] = $data['razao_social'] ?? '';
         $data['nome_fantasia'] = $data['nome_fantasia'] ?? '';
         $data['situacao_cadastral'] = $data['situacao_cadastral'] ?? 'N/A';
-        $data['sigla_uf'] = $data['uf'] ?? $data['sigla_uf'] ?? '';
-        $data['cnae_fiscal_principal'] = $data['cnae_principal'] ?? '';
         
-        // Fallbacks para campos que podem estar em empresas ou estabelecimentos no novo schema
-        $data['data_inicio_atividade'] = $data['data_inicio_atividade'] ?? '';
+        // Mapeamento de UF (estabelecimentos.sigla_uf)
+        $data['sigla_uf'] = $data['sigla_uf'] ?? $data['uf'] ?? '';
+        
+        // Mapeamento de CNAE
+        $data['cnae_fiscal_principal'] = $data['cnae_fiscal_principal'] ?? $data['cnae_principal'] ?? '';
+        
+        // Mapeamento de data de início
+        $data['data_inicio_atividade'] = $data['data_inicio_atividade'] ?? $data['data_abertura'] ?? '';
+
+        // Mapeamento de telefone e email (podem vir de estabelecimentos)
+        $data['telefone_1'] = $data['telefone_1'] ?? $data['telefone1'] ?? '';
+        $data['email'] = $data['email'] ?? $data['e_mail'] ?? '';
         
         // Mapeamento de situação cadastral se vier como número
-        $situacoes = [1 => 'NULA', 2 => 'ATIVA', 3 => 'SUSPENSA', 4 => 'INAPTA', 8 => 'BAIXADA'];
-        if (is_numeric($data['situacao_cadastral']) && isset($situacoes[$data['situacao_cadastral']])) {
+        $situacoes = [
+            '01' => 'NULA', '1' => 'NULA',
+            '02' => 'ATIVA', '2' => 'ATIVA',
+            '03' => 'SUSPENSA', '3' => 'SUSPENSA',
+            '04' => 'INAPTA', '4' => 'INAPTA',
+            '08' => 'BAIXADA', '8' => 'BAIXADA'
+        ];
+        if (isset($situacoes[$data['situacao_cadastral']])) {
             $data['situacao_cadastral'] = $situacoes[$data['situacao_cadastral']];
         }
 

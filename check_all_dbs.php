@@ -1,24 +1,29 @@
 <?php
 require_once __DIR__ . '/config/db.php';
-$DB_NAMES = [
-    'u582732852_buscacnpj6',
-    'u582732852_buscacnpj5',
-    'u582732852_buscacnpj4',
-    'u582732852_buscacnpj3',
-    'u582732852_buscacnpj2',
-    'u582732852_buscacnpj1'
-];
+require_once __DIR__ . '/config/db.php';
 
-foreach ($DB_NAMES as $dbName) {
+for ($i = 1; $i <= 32; $i++) {
+    $dbName = 'u582732852_buscacnpj' . $i;
     echo "Checking $dbName...\n";
     try {
-        $dsn = "mysql:host=" . DB_HOST . ";dbname=" . $dbName . ";charset=utf8mb4";
-        $db = new PDO($dsn, $dbName, DB_PASS);
-        $stmt = $db->query("DESCRIBE dados_cnpj");
-        $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
-        echo "Columns in $dbName: " . implode(', ', $cols) . "\n";
+        $db = getSpecificConnection($dbName);
+        if (!$db) {
+            echo "Failed to connect to $dbName\n";
+            continue;
+        }
+        
+        $tables = ['empresas', 'estabelecimentos', 'socios'];
+        foreach ($tables as $table) {
+            $stmt = $db->query("SHOW TABLES LIKE '$table'");
+            if ($stmt->fetch()) {
+                $count = $db->query("SELECT COUNT(*) FROM $table")->fetchColumn();
+                echo "  [OK] $table ($count records)\n";
+            } else {
+                echo "  [MISSING] $table\n";
+            }
+        }
     } catch (Exception $e) {
-        echo "Error in $dbName: " . $e->getMessage() . "\n";
+        echo "  Error in $dbName: " . $e->getMessage() . "\n";
     }
     echo "-------------------\n";
 }

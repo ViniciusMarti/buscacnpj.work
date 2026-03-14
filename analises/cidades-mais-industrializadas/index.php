@@ -7,13 +7,32 @@ $description = "Onde ficam as maiores fábricas do país? Conheça os estados e 
 $canonical = "https://buscacnpjgratis.com.br/analises/cidades-mais-industrializadas/";
 
 try {
-    $db = getDB();
-    
-    // Top Indústrias do país (busca otimizada rápida pelas maiores)
-    $stmt = $db->query("SELECT * FROM dados_cnpj WHERE situacao = 'ATIVA' AND capital_social > 0 AND cnae_principal_descricao LIKE '%Fabrica%' ORDER BY capital_social DESC LIMIT 10");
-    $top_industrias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Top Indústrias do país - Busca Distribuída com filtro de CNAE de Indústria (Divisões 10 a 33)
+    $top_industrias = fetchAllDistributed("
+        SELECT e.razao_social, e.capital_social, e.cnpj_basico, est.cnpj, est.cnae_fiscal_principal 
+        FROM empresas e 
+        INNER JOIN estabelecimentos est ON e.cnpj_basico = est.cnpj_basico 
+        WHERE est.situacao_cadastral = 'ATIVA' 
+        AND (SUBSTR(est.cnae_fiscal_principal, 1, 2) BETWEEN '10' AND '33')
+        AND e.capital_social > 0
+    ", [], 'e.capital_social', 'DESC', 10);
+
+    // Enriquecer com descrições de CNAE via SQLite
+    $cnae_db = getCNAEDB();
+    foreach ($top_industrias as &$ind) {
+        $ind['cnae_principal_descricao'] = 'Indústria';
+        if ($cnae_db && !empty($ind['cnae_fiscal_principal'])) {
+            $cnae_clean = preg_replace('/\D/', '', $ind['cnae_fiscal_principal']);
+            $stmt_c = $cnae_db->prepare("SELECT descricao FROM cnaes WHERE codigo = ? LIMIT 1");
+            $stmt_c->execute([$cnae_clean]);
+            $res_c = $stmt_c->fetch();
+            if ($res_c) $ind['cnae_principal_descricao'] = $res_c['descricao'];
+        }
+    }
+    unset($ind);
 
 } catch (Exception $e) {
+    error_log("Erro na análise de indústrias: " . $e->getMessage());
     $top_industrias = [];
 }
 ?>

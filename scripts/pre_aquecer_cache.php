@@ -25,8 +25,8 @@ try {
         
         // Busca as cidades com mais empresas ativas (as mais prováveis de serem acessadas)
         $stmt = $db->query("
-            SELECT sigla_uf as uf, municipio, COUNT(*) as total 
-            FROM dados_cnpj 
+            SELECT sigla_uf, municipio, COUNT(*) as total 
+            FROM estabelecimentos 
             WHERE situacao_cadastral = 'ATIVA' 
             GROUP BY sigla_uf, municipio 
             HAVING total > 100
@@ -35,7 +35,7 @@ try {
         ");
 
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-            $uf = $row['uf'];
+            $uf = $row['sigla_uf'];
             $municipio = $row['municipio'];
             
             // Gera o slug da cidade (mesma lógica do cidade.php)
