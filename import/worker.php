@@ -96,7 +96,16 @@ function importar($pasta, $tabela){
 
         $headerLine = gzgets($gz);
         if (!$headerLine) { gzclose($gz); continue; }
+        
+        // Clean header: remove strange characters and mapping socio -> nome_socio to match our schema
+        $headerLine = str_replace(["\r", "\n"], "", $headerLine);
         $header = str_getcsv($headerLine);
+        
+        foreach($header as $key => $val) {
+            if ($val == "nome" && $tabela == "socios") $header[$key] = "nome_socio";
+            if ($val == "qualificacao" && $tabela == "socios") $header[$key] = "qualificacao_socio";
+        }
+
         $headerStr = implode(",", $header);
 
         $lineCount = 0;
