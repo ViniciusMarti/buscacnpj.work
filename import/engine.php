@@ -31,7 +31,20 @@ for($i=1;$i<=32;$i++){
 
 file_put_contents(__DIR__ . "/status.json",json_encode($status));
 
-// Note: Background execution logic for Linux/Hostinger as requested
-exec("php worker.php > /dev/null 2>&1 &");
+// Note: exec() is disabled on Hostinger shared hosting. 
+// Using a non-blocking web request to trigger the worker.
+$protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http";
+$host = $_SERVER['HTTP_HOST'];
+$path = dirname($_SERVER['PHP_SELF']);
+$url = "$protocol://$host$path/worker.php";
 
-echo "IMPORTAÇÃO INICIADA";
+$ch = curl_init();
+curl_setopt($ch, CURLOPT_URL, $url);
+curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+curl_setopt($ch, CURLOPT_TIMEOUT, 1); // Close connection after 1s
+curl_setopt($ch, CURLOPT_NOSIGNAL, 1);
+curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+curl_exec($ch);
+curl_close($ch);
+
+echo "IMPORTAÇÃO INICIADA (Worker via Web)";

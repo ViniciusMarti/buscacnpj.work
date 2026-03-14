@@ -1,6 +1,7 @@
 <?php
 
 set_time_limit(0);
+ignore_user_abort(true);
 ini_set('memory_limit','1024M');
 
 $password="qPMwBp#WW*BN6k";
